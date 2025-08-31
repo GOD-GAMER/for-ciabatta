@@ -1,343 +1,111 @@
 # BakeBot
 
-A Twitch baking-themed chat bot with cozy mini-games, redemptions, a tiny leaderboard website, and a beautiful modern GUI. Built with Python, twitchio, aiosqlite, aiohttp, and Flet.
+A Twitch baking-themed chat bot with mini-games, token economy, bread fights, and a modern web interface. Built with Python and Flask.
 
----
+## Quick Start
 
-## Features
-- **Modern Flutter-based GUI** with beautiful baking-themed design
-- **Universal icon support** - emoji, symbols, or ASCII text based on system capabilities
-- Step-by-step OAuth token setup wizard with smooth animations
-- Persistent SQLite storage (XP, tokens, wins, redemptions, chat logs)
-- User management interface for streamers
-- Baking games: Guess the Ingredient, Oven Timer Trivia, Seasonal Event
-- XP and token economy with simple redemptions
-- Lightweight web server (leaderboard, recipe links, QR generator)
-- Optional EventSub listener for Channel Points
-- Cooldowns and rate limits to reduce spam
-- Complete data persistence - survives app restarts
-
----
-
-## Requirements
-- Python 3.10+
-- A Twitch account for your bot
-- Optional: Twitch Developer Application (for OAuth and EventSub)
-
----
-
-## Quick Start (Modern GUI)
-1. Install dependencies
+1. **Install dependencies**
    ```bash
    pip install -r requirements.txt
    ```
-2. Launch the beautiful GUI
+
+2. **Launch the bot**
    ```bash
    python -m bot.gui
    ```
-3. In the GUI:
-   - Choose your preferred icon style (Emoji/Symbol/Text) from the dropdown
-   - Click "Setup OAuth" and follow the animated 4-step wizard
-   - Enter your channel name in the sleek input field
-   - Click the "?? Start Bot" button
-4. Open the styled leaderboard
-   - Click "?? Open Leaderboard" or visit http://localhost:8080/leaderboard
 
----
+3. **Setup in browser** (opens automatically at http://127.0.0.1:5000)
+   - Click "OAuth Wizard" to connect your Twitch account
+   - Enter your channel name
+   - Click "Start Bot"
 
-## Beautiful Modern Interface
+4. **View leaderboard** at http://localhost:8080/leaderboard
 
-**?? Design Features:**
-- Flutter-rendered GUI with smooth animations
-- Baking-themed color scheme (warm browns, creams, golds)
-- Card-based layout with elevation and shadows  
-- **Adaptive icons** - automatically detects system capabilities
-- **3 icon styles**: Emoji ??, Symbol ?, Text [B]
-- Responsive tabs: Dashboard, Logs, Users, Games
-- Real-time status indicators with color coding
-- Snackbar notifications for user feedback
+## Core Features
 
-**?? OAuth Wizard:**
-- 4-step tabbed interface with progress indicators
-- Integrated browser launching
-- Clipboard integration for easy copying
-- Form validation with helpful error messages
-- Automatic token formatting and saving
+- **Baking-themed mini-games** with XP and token rewards
+- **Token economy** with daily bonuses and bakery shop
+- **PvP bread fights** using baking knowledge questions
+- **Web interface** for management and shop browsing
+- **Persistent data** - everything saves automatically
 
-**?? Icon System:**
-- **Emoji Mode**: Beautiful Unicode emojis (?? ?? ?? ??)
-- **Symbol Mode**: Clean Unicode symbols (? ? ? ?)  
-- **Text Mode**: ASCII fallbacks ([B] [L] [>] [#])
-- **Auto-detection**: Automatically chooses best option for your system
-- **Manual override**: Dropdown to switch styles anytime
+## Games & Commands
 
----
+**Games:**
+- `!guess` - Guess the baking ingredient
+- `!oventrivia` - Baking knowledge trivia
+- `!seasonal` - Themed seasonal events
+- `!fight @user` - Challenge someone to bread combat
 
-## Data Persistence
+**Token Economy:**
+- `!shop` - Browse the bakery shop
+- `!buy <item>` - Purchase power-ups and cosmetics
+- `!daily` - Claim daily bonus (with streak rewards)
+- `!hourly` - Claim hourly bonus
+- `!work` - Work in the bakery for tokens
+- `!tokens` - Check your balance
 
-All data is automatically saved and persists between sessions:
+**Other Commands:**
+- `!level` - Show your stats and combat power
+- `!leaderboard` - Link to web leaderboard
+- `!recipe` - Get a random baking recipe
 
-- **User Data:** XP, tokens, wins, notes, ban status
-- **Chat Logs:** Complete message history with timestamps  
-- **Game Results:** Win/loss records and participation
-- **Redemption History:** Complete transaction log
-- **Bot Settings:** Configuration, seasons, metadata
+## Bakery Shop
 
-Data is stored in `bot_data.sqlite3` and automatically loads on startup.
+Spend tokens on baking-themed items:
 
----
+- **Flour Power Boost** (25??) - Double XP for 10 minutes
+- **Golden Whisk** (50??) - [Master Baker] chat title
+- **Sourdough Shield** (40??) - Extra health in bread fights
+- **Cookie Jar** (12??) - Mystery box with random rewards
+- **Rainbow Sprinkles** (15??) - Colorful chat effects
 
-## User Management
+*Browse the full shop at `/shop` or use `!shop` in chat*
 
-Built-in user management interface with modern cards:
-- View all users with stats cards showing totals
-- Edit XP, tokens, wins for any user
-- Add notes to users with rich text
-- Ban/unban users with visual indicators
-- View chat message history in scrollable lists
-- Export/import user data with progress indicators
+## Bread Fighting System
 
-Access via the "?? Users" tab in the GUI.
+Challenge other viewers to turn-based combat:
 
----
+1. **Challenge:** `!fight @username`
+2. **Accept:** `!accept` (60 second window)
+3. **Combat:** Take turns answering bread knowledge questions
+4. **Victory:** Correct answers deal damage based on your level and accuracy
 
-## Game Controls
+**Combat Stats:**
+- Level = XP ÷ 100
+- Health = 50 + (level × 10)
+- Damage = 10 + (level × 2) + accuracy bonus
 
-Interactive game control panel:
-- **Game Cards:** Visual cards for each game type with themed icons
-- **One-click start:** Launch games directly from GUI
-- **Season Controls:** Dropdown to change seasonal themes
-- **Live Status:** See active games and their progress
+## Token Earning
 
-Access via the "?? Games" tab.
+- **Daily bonus:** 10+ tokens (streak bonuses up to +20)
+- **Hourly bonus:** 3 tokens every hour  
+- **Work system:** 3-12 tokens per bakery job
+- **Win games:** 5 tokens + 25 XP
+- **Participation:** 1 XP every 15 seconds
 
----
+## Web Interface
+
+- **Management GUI:** http://127.0.0.1:5000 (Dashboard, OAuth setup)
+- **Bakery Shop:** http://127.0.0.1:5000/shop (Browse all items)
+- **Leaderboard:** http://localhost:8080/leaderboard (Public scoreboard)
+
+## Requirements
+
+- Python 3.10+
+- Twitch account for your bot
+- Optional: Twitch Developer App for OAuth
 
 ## Configuration
 
-Beautifully organized settings panel with auto-save:
+All settings managed through the web interface:
+- Twitch OAuth token and channel
+- Command prefix (default: !)
+- Web server ports
+- EventSub for channel points (optional)
 
-| Key | Description | Default |
-|-----|-------------|---------|
-| TWITCH_TOKEN | OAuth token (secured input field) | - |
-| TWITCH_CLIENT_ID | For OAuth wizard | - |
-| TWITCH_CHANNEL | Your channel login name | - |
-| PREFIX | Command prefix | ! |
-| ENABLE_EVENTSUB | Enable Channel Points listener | false |
-| EVENTSUB_SECRET | Secret for EventSub signature verification | changeme |
-| EVENTSUB_PORT | Local EventSub port | 8081 |
-| WEB_HOST | Web server host | 127.0.0.1 |
-| WEB_PORT | Web server port | 8080 |
-| LOG_LEVEL | Log level: DEBUG/INFO/WARNING/ERROR | INFO |
+Data persists in `bot_data.sqlite3` - no setup required.
 
 ---
 
-## Commands (chat)
-- !recipe - Share a cookie recipe link
-- !bakeoff - Hype line and suggests games
-- !ovenstatus - Fun oven status line
-- !leaderboard - Post the leaderboard link
-- !guess - Start Guess the Ingredient
-- !oventrivia - Start Oven Timer Trivia
-- !seasonal - Start a seasonal mini-game
-- !setseason <name|off> - Broadcaster only (e.g., halloween, holiday)
-- !redeem <xp_boost|confetti|doublexp|breadfight> - Spend in-bot tokens
-- !fight @username - Challenge someone to bread combat
-- !accept - Accept a bread fight challenge
-- !level [@username] - Show level and combat stats
-
-**Token Economy:**
-- !shop [category] - Browse the bakery shop
-- !buy <item> - Purchase items from the bakery shop
-- !tokens [@username] - Check token balance
-- !daily - Claim daily token bonus (with streak rewards)
-- !hourly - Claim hourly token bonus
-- !work - Work in the bakery for tokens (5min cooldown)
-- !gift @username amount - Gift tokens to another user
-
-Cooldowns:
-- Commands: 3s per user
-- Participation XP: 15s per user
-- Rate limit: 8 messages per 10s per user
-
----
-
-## Bakery Shop System
-
-The bakery shop offers baking-themed items organized in categories:
-
-**?? Boosts & Buffs:**
-- **Flour Power Boost** (25??) - Double XP gain for 10 minutes
-- **Yeast Feast** (20??) - Instant +100 XP
-- **Sugar Rush** (30??) - Skip all cooldowns for 5 minutes
-
-**? Cosmetics & Fun:**
-- **Golden Whisk** (50??) - Special [Master Baker] chat title
-- **Rainbow Sprinkles** (15??) - Colorful chat celebration effect
-- **Cookie Jar** (12??) - Mystery box with random rewards
-
-**?? Combat & Games:**
-- **Sourdough Shield** (40??) - Extra health in bread fights (+20 HP)
-- **Mixing Mastery** (35??) - Extra damage in bread fights (+5 damage)
-
-**??? Utilities:**
-- **Recipe Book** (18??) - Get 3 random baking recipes
-- **Timer Precision** (22??) - Extra time for trivia questions (+5 seconds)
-
----
-
-## Token Economy
-
-**?? How to Earn Tokens:**
-- **Daily Bonus:** 10+ tokens (streak bonuses up to +20)
-- **Hourly Bonus:** 3 tokens every hour
-- **Work System:** 3-12 tokens per work session (5min cooldown)
-- **Game Victories:** 5 tokens per win
-- **Participation:** Chance for bonus tokens during active chat
-
-**Ways to Spend:**
-- Bakery shop items (12-50 tokens)
-- Classic redemptions (5-20 tokens) 
-- Gift tokens to other viewers
-- Special event purchases
-
-**?? Token Features:**
-- **Daily Streaks:** Consecutive days increase daily bonus
-- **Work Variety:** 6 different bakery jobs with varying rewards
-- **Gift System:** Transfer tokens to other users (small fee applies)
-- **Mystery Rewards:** Cookie jar gambling with potential jackpots
-
----
-
-## Games
-- **Guess the Ingredient:** Bot posts a hint; first correct answer wins
-- **Oven Timer Trivia:** Baking trivia; first correct answer wins  
-- **Seasonal Event:** Themed mystery ingredient (season-dependent pool)
-- **Bread Fight:** PvP turn-based combat using bread knowledge questions
-
-### Bread Fight System
-The bread fighting mini-game allows viewers to engage in turn-based combat:
-
-**How it Works:**
-- Challenge another viewer with `!fight @username`
-- Target has 60 seconds to `!accept` the challenge
-- Players take turns answering bread knowledge questions
-- Correct answers deal damage based on accuracy, difficulty, and level
-- First player to reach 0 health loses
-
-**Combat Stats:**
-- **Level:** Calculated from XP (every 100 XP = 1 level)
-- **Health:** 50 + (level × 10) + shop bonuses
-- **Base Damage:** 10 + (level × 2) + shop bonuses
-- **Damage Modifiers:** Question difficulty and answer accuracy
-
-**Question Types:**
-- ? Basic: Yeast, temperature, basic ingredients
-- ?? Intermediate: Flour types, techniques, measurements  
-- ??? Advanced: Maillard reaction, autolyse, professional terms
-
----
-
-## XP, Tokens, Redemptions
-- **Participation:** +1 XP per user every 15s
-- **Win a game:** +25 XP and +5 tokens
-- **Win a bread fight:** +25 XP and +5 tokens
-- **Daily bonus:** +10 tokens (streak bonuses available)
-- **Hourly bonus:** +3 tokens
-- **Work in bakery:** +3-12 tokens per session
-- **!redeem xp_boost** ? +50 XP (costs 10 tokens)
-- **!redeem confetti** ? fun effect (5 tokens)
-- **!redeem doublexp** ? flavor message (20 tokens)
-- **!redeem breadfight** ? bread fight pass for enhanced combat (15 tokens)
-
-All data persists permanently in bot_data.sqlite3.
-
----
-
-## Web Interface
-- **Leaderboard:** http://localhost:8080/leaderboard (styled, mobile-friendly)
-- **Recipes:** http://localhost:8080/recipes (curated baking recipes)
-- **QR codes:** http://localhost:8080/qr?url=... (generate QR for any URL)
-- **API endpoints:** /api/users, /api/chat_logs for integrations
-
----
-
-## EventSub + Channel Points (optional)
-Enable channel point rewards to trigger bot effects:
-
-1. Set in GUI or .env: ENABLE_EVENTSUB=true
-2. Expose endpoint via HTTPS tunnel: http://127.0.0.1:8081/eventsub  
-3. Create EventSub subscription for: channel.channel_points_custom_reward_redemption.add
-4. Map reward titles to bot rewards (editable in bot/commands.py):
-   - "XP Boost" ? xp_boost
-   - "Confetti" ? confetti  
-   - "Double XP (5 min)" ? doublexp
-
----
-
-## Seasonal Events
-- **Set season:** !setseason halloween (broadcaster only)
-- **Start event:** !seasonal
-- **Disable:** !setseason off
-
-Seasons change ingredient pools and theming. Control via GUI dropdown.
-
----
-
-## Logs and Monitoring
-- **Colorized Log Panel:** Real-time log viewing with syntax highlighting
-- **Auto-scroll:** Latest logs always visible
-- **Log Management:** Clear logs button, limited history
-- **File Logging:** logs/bakebot.log with rotation
-- **Chat Logging:** All messages stored with timestamps
-- **User Activity:** Last seen tracking with visual indicators
-
----
-
-## Icon Support
-BakeBot's GUI includes a comprehensive icon system that works on all systems:
-
-**?? Icon Styles:**
-- **Emoji (??)**: Beautiful Unicode emojis for modern systems
-- **Symbol (?)**: Clean Unicode symbols for better compatibility  
-- **Text ([B])**: ASCII fallbacks that work everywhere
-
-**?? Features:**
-- **Auto-detection**: Automatically chooses the best option for your system
-- **Manual selection**: Use the dropdown in the GUI header to switch styles
-- **Themed colors**: Icons automatically match the baking color scheme
-- **Consistent mapping**: Same meaning across all icon styles
-
-**?? Icon Categories:**
-- Core: bread, gear, lock, rocket, stop
-- Interface: home, chart, logs, users, games
-- Actions: search, download, save, edit, trash
-- Status: ready, loading, success, error, warning
-- Seasonal: pumpkin, tree, sun, flower
-- Gaming: trophy, medal, crown, star, coin
-
----
-
-## Troubleshooting
-- **Bot won't connect:** Use OAuth wizard to get fresh token
-- **No chat messages:** Check if bot is modded, verify channel name
-- **Web not loading:** Change WEB_PORT if 8080 is busy
-- **OAuth issues:** Follow wizard exactly, ensure https://localhost redirect URI
-- **Data not saving:** Check file permissions on bot_data.sqlite3
-- **GUI not loading:** Ensure Flet is installed: `pip install flet>=0.24.1`
-- **Icons not displaying:** Try switching icon style in the GUI dropdown
-- **Question marks instead of icons:** Use "Text" mode for universal compatibility
-
----
-
-## Security
-- Tokens stored securely in .env (not committed to git)
-- Password-masked input fields in GUI
-- User data encrypted at rest in SQLite
-- EventSub signature verification
-- Rate limiting prevents abuse
-
----
-
-## License
-For your channel use. No warranty.
+*A cozy baking bot for your Twitch community* ??
