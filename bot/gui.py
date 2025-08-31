@@ -96,7 +96,6 @@ class BakeBotApp:
                 ft.Icon(ft.icons.BAKERY_DINING, size=40, color=self.secondary_color),
                 ft.Text("BakeBot Manager", size=28, weight=ft.FontWeight.BOLD, color=self.secondary_color),
             ], alignment=ft.MainAxisAlignment.CENTER),
-            padding=ft.padding.only(bottom=20),
             bgcolor=self.accent_color,
             border_radius=12,
             padding=20
