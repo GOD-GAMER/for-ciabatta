@@ -102,7 +102,7 @@ All settings managed through the web interface:
 - Twitch OAuth token and channel
 - Command prefix (default: !)
 - Web server ports
-- EventSub for channel points (optional)
+- EventSub for channel points (optional) - see docs/EVENTSUB.md
 
 Data persists in `bot_data.sqlite3` - no setup required.
 
