@@ -76,8 +76,7 @@ class BakeBotApp:
         self.token = os.getenv('TWITCH_TOKEN', '')
         self.client_id = os.getenv('TWITCH_CLIENT_ID', '')
         self.channel = os.getenv('TWITCH_CHANNEL', '')
-        self.prefix = os.getenv('PREFIX', '!
-')
+        self.prefix = os.getenv('PREFIX', '!')
         self.web_host = os.getenv('WEB_HOST', '127.0.0.1')
         self.web_port = os.getenv('WEB_PORT', '8080')
 
@@ -86,8 +85,7 @@ class BakeBotApp:
         set_key(env_path, 'TWITCH_TOKEN', self.token_field.value)
         set_key(env_path, 'TWITCH_CLIENT_ID', self.client_id_field.value)
         set_key(env_path, 'TWITCH_CHANNEL', self.channel_field.value)
-        set_key(env_path, 'PREFIX', self.prefix_field.value or '!
-')
+        set_key(env_path, 'PREFIX', self.prefix_field.value or '!')
         set_key(env_path, 'WEB_HOST', self.web_host_field.value)
         set_key(env_path, 'WEB_PORT', self.web_port_field.value)
 
