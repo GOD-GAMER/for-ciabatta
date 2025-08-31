@@ -11,6 +11,80 @@ from dotenv import set_key
 from .bot import BakeBot
 from .logging_config import setup_logging
 
+# Icon mappings with fallback text for systems without emoji support
+ICONS = {
+    'bread': '??',
+    'gear': '??', 
+    'lock': '??',
+    'rocket': '??',
+    'stop': '??',
+    'chart': '??',
+    'logs': '??',
+    'users': '??',
+    'games': '??',
+    'home': '??',
+    'trash': '???',
+    'search': '??',
+    'download': '??',
+    'trending': '??',
+    'star': '?',
+    'quiz': '?',
+    'timer': '?',
+    'party': '??',
+    'masks': '??',
+    'pumpkin': '??',
+    'tree': '??',
+    'sun': '??',
+    'flower': '??',
+    'globe': '??',
+    'save': '??',
+    'close': '?',
+    'ready': '?',
+    'loading': '?',
+    'success': '?',
+    'error': '?'
+}
+
+# Fallback text icons for systems without Unicode support
+FALLBACK_ICONS = {
+    'bread': '[B]',
+    'gear': '[*]', 
+    'lock': '[L]',
+    'rocket': '[>',
+    'stop': '[ ]',
+    'chart': '[#]',
+    'logs': '[=]',
+    'users': '[U]',
+    'games': '[G]',
+    'home': '[H]',
+    'trash': '[X]',
+    'search': '[?]',
+    'download': '[v]',
+    'trending': '[^]',
+    'star': '[*]',
+    'quiz': '[?]',
+    'timer': '[T]',
+    'party': '[!]',
+    'masks': '[M]',
+    'pumpkin': '[P]',
+    'tree': '[T]',
+    'sun': '[S]',
+    'flower': '[F]',
+    'globe': '[W]',
+    'save': '[S]',
+    'close': '[X]',
+    'ready': '[ ]',
+    'loading': '[.]',
+    'success': '[+]',
+    'error': '[!]'
+}
+
+def get_icon(name, use_fallback=False):
+    """Get icon with optional fallback for systems without emoji support"""
+    if use_fallback:
+        return FALLBACK_ICONS.get(name, f'[{name[0].upper()}]')
+    return ICONS.get(name, f'[{name[0].upper()}]')
+
 class BotManager:
     def __init__(self):
         self.bot = None
@@ -44,9 +118,12 @@ class BotManager:
 class BakeBotApp:
     def __init__(self, page: ft.Page):
         self.page = page
-        self.page.title = "?? BakeBot - Twitch Bot Manager"
+        self.page.title = f"{get_icon('bread')} BakeBot - Twitch Bot Manager"
         self.page.theme_mode = ft.ThemeMode.LIGHT
         self.page.padding = 20
+        
+        # Try to detect emoji support
+        self.use_fallback_icons = False
         try:
             self.page.window.width = 1000
             self.page.window.height = 700
@@ -78,8 +155,29 @@ class BakeBotApp:
         # Load environment variables
         self.load_env()
         
+        # Add fallback toggle button
+        self.create_icon_toggle()
+        
         # Build UI
         self.build_ui()
+
+    def create_icon_toggle(self):
+        """Add a button to toggle between emoji and text icons"""
+        self.icon_toggle_btn = ft.TextButton(
+            "Switch to Text Icons",
+            on_click=self.toggle_icons
+        )
+
+    def toggle_icons(self, e):
+        """Toggle between emoji and fallback text icons"""
+        self.use_fallback_icons = not self.use_fallback_icons
+        self.icon_toggle_btn.text = "Switch to Emoji Icons" if self.use_fallback_icons else "Switch to Text Icons"
+        self.build_ui()
+        self.page.update()
+
+    def get_icon(self, name):
+        """Get icon based on current fallback setting"""
+        return get_icon(name, self.use_fallback_icons)
 
     def load_env(self):
         self.token = os.getenv('TWITCH_TOKEN', '')
@@ -99,12 +197,20 @@ class BakeBotApp:
         set_key(env_path, 'WEB_PORT', self.web_port_field.value)
 
     def build_ui(self):
+        # Clear existing content
+        self.page.controls.clear()
+        
         # App header
         header = ft.Container(
-            content=ft.Row([
-                ft.Text("??", size=40, color=self.secondary_color),
-                ft.Text("BakeBot Manager", size=28, weight=ft.FontWeight.BOLD, color=self.secondary_color),
-            ], alignment=ft.MainAxisAlignment.CENTER),
+            content=ft.Column([
+                ft.Row([
+                    ft.Text(self.get_icon('bread'), size=40, color=self.secondary_color),
+                    ft.Text("BakeBot Manager", size=28, weight=ft.FontWeight.BOLD, color=self.secondary_color),
+                ], alignment=ft.MainAxisAlignment.CENTER),
+                ft.Row([
+                    self.icon_toggle_btn
+                ], alignment=ft.MainAxisAlignment.END)
+            ]),
             bgcolor=self.accent_color,
             border_radius=12,
             padding=20
@@ -120,7 +226,7 @@ class BakeBotApp:
         )
         
         oauth_wizard_btn = ft.ElevatedButton(
-            "?? Setup OAuth",
+            f"{self.get_icon('lock')} Setup OAuth",
             on_click=self.show_oauth_wizard,
             bgcolor=self.primary_color,
             color=self.white_color
@@ -162,7 +268,7 @@ class BakeBotApp:
         config_card = ft.Card(
             content=ft.Container(
                 content=ft.Column([
-                    ft.Text("?? Configuration", size=20, weight=ft.FontWeight.BOLD, color=self.secondary_color),
+                    ft.Text(f"{self.get_icon('gear')} Configuration", size=20, weight=ft.FontWeight.BOLD, color=self.secondary_color),
                     ft.Row([self.token_field, oauth_wizard_btn]),
                     self.client_id_field,
                     self.channel_field,
@@ -175,7 +281,7 @@ class BakeBotApp:
 
         # Control buttons
         self.start_btn = ft.ElevatedButton(
-            "?? Start Bot",
+            f"{self.get_icon('rocket')} Start Bot",
             on_click=self.start_bot,
             bgcolor=self.success_color,
             color=self.white_color,
@@ -183,7 +289,7 @@ class BakeBotApp:
         )
         
         self.stop_btn = ft.ElevatedButton(
-            "?? Stop Bot",
+            f"{self.get_icon('stop')} Stop Bot",
             on_click=self.stop_bot,
             bgcolor=self.error_color,
             color=self.white_color,
@@ -192,7 +298,7 @@ class BakeBotApp:
         )
         
         leaderboard_btn = ft.ElevatedButton(
-            "?? Open Leaderboard",
+            f"{self.get_icon('chart')} Open Leaderboard",
             on_click=self.open_leaderboard,
             bgcolor=self.primary_color,
             color=self.white_color,
@@ -207,7 +313,7 @@ class BakeBotApp:
 
         # Status indicator
         self.status_text = ft.Text("Ready", size=16, color=self.secondary_color)
-        self.status_icon = ft.Text("?", size=16, color=self.grey_color)
+        self.status_icon = ft.Text(self.get_icon('ready'), size=16, color=self.grey_color)
         
         status_row = ft.Row([
             self.status_icon,
@@ -221,7 +327,7 @@ class BakeBotApp:
             animation_duration=300,
             tabs=[
                 ft.Tab(
-                    text="?? Dashboard",
+                    text=f"{self.get_icon('home')} Dashboard",
                     content=ft.Container(
                         content=ft.Column([
                             config_card,
@@ -234,15 +340,15 @@ class BakeBotApp:
                     )
                 ),
                 ft.Tab(
-                    text="?? Logs",
+                    text=f"{self.get_icon('logs')} Logs",
                     content=self.build_logs_tab()
                 ),
                 ft.Tab(
-                    text="?? Users",
+                    text=f"{self.get_icon('users')} Users",
                     content=self.build_users_tab()
                 ),
                 ft.Tab(
-                    text="?? Games",
+                    text=f"{self.get_icon('games')} Games",
                     content=self.build_games_tab()
                 )
             ],
@@ -266,7 +372,7 @@ class BakeBotApp:
         )
         
         clear_logs_btn = ft.ElevatedButton(
-            "??? Clear Logs",
+            f"{self.get_icon('trash')} Clear Logs",
             on_click=self.clear_logs,
             bgcolor=self.error_color,
             color=self.white_color
@@ -275,7 +381,7 @@ class BakeBotApp:
         return ft.Container(
             content=ft.Column([
                 ft.Row([
-                    ft.Text("?? Application Logs", size=20, weight=ft.FontWeight.BOLD, color=self.secondary_color),
+                    ft.Text(f"{self.get_icon('logs')} Application Logs", size=20, weight=ft.FontWeight.BOLD, color=self.secondary_color),
                     clear_logs_btn
                 ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
                 ft.Container(
@@ -292,23 +398,23 @@ class BakeBotApp:
     def build_users_tab(self):
         user_info = ft.Container(
             content=ft.Column([
-                ft.Text("?? User Management", size=20, weight=ft.FontWeight.BOLD, color=self.secondary_color),
+                ft.Text(f"{self.get_icon('users')} User Management", size=20, weight=ft.FontWeight.BOLD, color=self.secondary_color),
                 ft.Text("Manage viewer data, XP, tokens, and permissions", size=14, color=self.grey_700_color),
                 ft.Container(height=20),
                 
                 ft.Row([
                     ft.ElevatedButton(
-                        "?? View All Users",
+                        f"{self.get_icon('chart')} View All Users",
                         bgcolor=self.primary_color,
                         color=self.white_color
                     ),
                     ft.ElevatedButton(
-                        "?? Search User",
+                        f"{self.get_icon('search')} Search User",
                         bgcolor=self.secondary_color,
                         color=self.white_color
                     ),
                     ft.ElevatedButton(
-                        "?? Export Data",
+                        f"{self.get_icon('download')} Export Data",
                         bgcolor=self.success_color,
                         color=self.white_color
                     )
@@ -318,9 +424,9 @@ class BakeBotApp:
                 
                 # Stats cards
                 ft.Row([
-                    self.create_stat_card("Total Users", "Loading...", "??", self.primary_color),
-                    self.create_stat_card("Active Today", "Loading...", "??", self.success_color),
-                    self.create_stat_card("Top XP", "Loading...", "?", self.secondary_color)
+                    self.create_stat_card("Total Users", "Loading...", self.get_icon('users'), self.primary_color),
+                    self.create_stat_card("Active Today", "Loading...", self.get_icon('trending'), self.success_color),
+                    self.create_stat_card("Top XP", "Loading...", self.get_icon('star'), self.secondary_color)
                 ], wrap=True, spacing=20)
             ]),
             padding=20
@@ -331,15 +437,15 @@ class BakeBotApp:
     def build_games_tab(self):
         return ft.Container(
             content=ft.Column([
-                ft.Text("?? Game Controls", size=20, weight=ft.FontWeight.BOLD, color=self.secondary_color),
+                ft.Text(f"{self.get_icon('games')} Game Controls", size=20, weight=ft.FontWeight.BOLD, color=self.secondary_color),
                 ft.Text("Control bot games and seasonal events", size=14, color=self.grey_700_color),
                 ft.Container(height=20),
                 
                 # Game control cards
                 ft.Row([
-                    self.create_game_card("Guess the Ingredient", "Start a guessing game", "?"),
-                    self.create_game_card("Oven Timer Trivia", "Baking knowledge quiz", "?"),
-                    self.create_game_card("Seasonal Event", "Theme-based mini-game", "??")
+                    self.create_game_card("Guess the Ingredient", "Start a guessing game", self.get_icon('quiz')),
+                    self.create_game_card("Oven Timer Trivia", "Baking knowledge quiz", self.get_icon('timer')),
+                    self.create_game_card("Seasonal Event", "Theme-based mini-game", self.get_icon('party'))
                 ], wrap=True, spacing=20),
                 
                 ft.Container(height=30),
@@ -348,16 +454,16 @@ class BakeBotApp:
                 ft.Card(
                     content=ft.Container(
                         content=ft.Column([
-                            ft.Text("?? Seasonal Settings", size=16, weight=ft.FontWeight.BOLD),
+                            ft.Text(f"{self.get_icon('masks')} Seasonal Settings", size=16, weight=ft.FontWeight.BOLD),
                             ft.Row([
                                 ft.Dropdown(
                                     label="Current Season",
                                     options=[
                                         ft.dropdown.Option("none", "No Season"),
-                                        ft.dropdown.Option("halloween", "?? Halloween"),
-                                        ft.dropdown.Option("holiday", "?? Holiday"),
-                                        ft.dropdown.Option("summer", "?? Summer"),
-                                        ft.dropdown.Option("spring", "?? Spring")
+                                        ft.dropdown.Option("halloween", f"{self.get_icon('pumpkin')} Halloween"),
+                                        ft.dropdown.Option("holiday", f"{self.get_icon('tree')} Holiday"),
+                                        ft.dropdown.Option("summer", f"{self.get_icon('sun')} Summer"),
+                                        ft.dropdown.Option("spring", f"{self.get_icon('flower')} Spring")
                                     ],
                                     value="none",
                                     width=200
@@ -467,7 +573,7 @@ class BakeBotApp:
                             ft.Text("4. Category: Chat Bot, then Create"),
                             ft.Container(height=20),
                             ft.ElevatedButton(
-                                "?? Open Developer Console",
+                                f"{self.get_icon('globe')} Open Developer Console",
                                 on_click=lambda e: webbrowser.open("https://dev.twitch.tv/console/apps"),
                                 bgcolor=self.primary_color,
                                 color=self.white_color
@@ -518,7 +624,7 @@ class BakeBotApp:
                             token_input,
                             ft.Container(height=20),
                             ft.ElevatedButton(
-                                "?? Save Token",
+                                f"{self.get_icon('save')} Save Token",
                                 on_click=save_token,
                                 bgcolor=self.success_color,
                                 color=self.white_color
@@ -532,14 +638,14 @@ class BakeBotApp:
 
         wizard_modal = ft.AlertDialog(
             modal=True,
-            title=ft.Text("?? OAuth Setup Wizard"),
+            title=ft.Text(f"{self.get_icon('lock')} OAuth Setup Wizard"),
             content=ft.Container(
                 content=wizard_tabs,
                 width=600,
                 height=400
             ),
             actions=[
-                ft.TextButton("? Close", on_click=close_wizard),
+                ft.TextButton(f"{self.get_icon('close')} Close", on_click=close_wizard),
             ],
             actions_alignment=ft.MainAxisAlignment.END
         )
@@ -559,33 +665,33 @@ class BakeBotApp:
 
     def start_bot(self, e):
         self.save_env()
-        self.update_status("Starting...", "??", self.orange_color)
+        self.update_status("Starting...", self.get_icon('loading'), self.orange_color)
         self.start_btn.disabled = True
         self.page.update()
         
         success = self.bot_manager.start_bot(self.bot_callback)
         if not success:
-            self.update_status("Failed to start", "?", self.error_color)
+            self.update_status("Failed to start", self.get_icon('error'), self.error_color)
             self.start_btn.disabled = False
             self.page.update()
 
     def stop_bot(self, e):
-        self.update_status("Stopping...", "??", self.orange_color)
+        self.update_status("Stopping...", self.get_icon('loading'), self.orange_color)
         self.stop_btn.disabled = True
         self.page.update()
         self.bot_manager.stop_bot(self.bot_callback)
 
     def bot_callback(self, status, error=None):
         if status == 'started':
-            self.update_status("Bot Running", "?", self.success_color)
+            self.update_status("Bot Running", self.get_icon('success'), self.success_color)
             self.start_btn.disabled = True
             self.stop_btn.disabled = False
         elif status == 'stopped':
-            self.update_status("Bot Stopped", "?", self.grey_color)
+            self.update_status("Bot Stopped", self.get_icon('ready'), self.grey_color)
             self.start_btn.disabled = False
             self.stop_btn.disabled = True
         elif status == 'error':
-            self.update_status(f"Error: {error}", "?", self.error_color)
+            self.update_status(f"Error: {error}", self.get_icon('error'), self.error_color)
             self.start_btn.disabled = False
             self.stop_btn.disabled = True
         
