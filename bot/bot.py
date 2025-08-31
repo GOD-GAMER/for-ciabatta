@@ -95,7 +95,7 @@ class BakeBot(tcommands.Bot):
             if self.cooldowns.check(f"xp:{author}", 15):
                 await self.command_handler.award_participation(author)
             # Games capture
-            resp = await self.games.on_message(author, message.content)
+            resp = await self.games.on_message(author, message.content, TwitchContextWrapper(message.channel), self.storage)
             if resp:
                 await message.channel.send(resp)
                 return

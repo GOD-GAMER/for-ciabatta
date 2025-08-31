@@ -141,7 +141,10 @@ Beautifully organized settings panel with auto-save:
 - !oventrivia - Start Oven Timer Trivia
 - !seasonal - Start a seasonal mini-game
 - !setseason <name|off> - Broadcaster only (e.g., halloween, holiday)
-- !redeem <xp_boost|confetti|doublexp> - Spend in-bot tokens
+- !redeem <xp_boost|confetti|doublexp|breadfight> - Spend in-bot tokens
+- !fight @username - Challenge someone to bread combat
+- !accept - Accept a bread fight challenge
+- !level [@username] - Show level and combat stats
 
 Cooldowns:
 - Commands: 3s per user
@@ -154,15 +157,39 @@ Cooldowns:
 - **Guess the Ingredient:** Bot posts a hint; first correct answer wins
 - **Oven Timer Trivia:** Baking trivia; first correct answer wins  
 - **Seasonal Event:** Themed mystery ingredient (season-dependent pool)
+- **Bread Fight:** PvP turn-based combat using bread knowledge questions
+
+### Bread Fight System
+The bread fighting mini-game allows viewers to engage in turn-based combat:
+
+**How it Works:**
+- Challenge another viewer with `!fight @username`
+- Target has 60 seconds to `!accept` the challenge
+- Players take turns answering bread knowledge questions
+- Correct answers deal damage based on accuracy, difficulty, and level
+- First player to reach 0 health loses
+
+**Combat Stats:**
+- **Level:** Calculated from XP (every 100 XP = 1 level)
+- **Health:** 50 + (level × 10) 
+- **Base Damage:** 10 + (level × 2)
+- **Damage Modifiers:** Question difficulty and answer accuracy
+
+**Question Types:**
+- ? Basic: Yeast, temperature, basic ingredients
+- ?? Intermediate: Flour types, techniques, measurements  
+- ??? Advanced: Maillard reaction, autolyse, professional terms
 
 ---
 
 ## XP, Tokens, Redemptions
 - **Participation:** +1 XP per user every 15s
 - **Win a game:** +25 XP and +5 tokens
+- **Win a bread fight:** +25 XP and +5 tokens
 - **!redeem xp_boost** ? +50 XP (costs 10 tokens)
 - **!redeem confetti** ? fun effect (5 tokens)
 - **!redeem doublexp** ? flavor message (20 tokens)
+- **!redeem breadfight** ? bread fight pass for enhanced combat (15 tokens)
 
 All data persists permanently in bot_data.sqlite3.
 
