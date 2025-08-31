@@ -6,6 +6,7 @@ A Twitch baking-themed chat bot with cozy mini-games, redemptions, a tiny leader
 
 ## Features
 - **Modern Flutter-based GUI** with beautiful baking-themed design
+- **Universal icon support** - emoji, symbols, or ASCII text based on system capabilities
 - Step-by-step OAuth token setup wizard with smooth animations
 - Persistent SQLite storage (XP, tokens, wins, redemptions, chat logs)
 - User management interface for streamers
@@ -35,6 +36,7 @@ A Twitch baking-themed chat bot with cozy mini-games, redemptions, a tiny leader
    python -m bot.gui
    ```
 3. In the GUI:
+   - Choose your preferred icon style (Emoji/Symbol/Text) from the dropdown
    - Click "Setup OAuth" and follow the animated 4-step wizard
    - Enter your channel name in the sleek input field
    - Click the "?? Start Bot" button
@@ -49,7 +51,8 @@ A Twitch baking-themed chat bot with cozy mini-games, redemptions, a tiny leader
 - Flutter-rendered GUI with smooth animations
 - Baking-themed color scheme (warm browns, creams, golds)
 - Card-based layout with elevation and shadows  
-- Modern icons and typography
+- **Adaptive icons** - automatically detects system capabilities
+- **3 icon styles**: Emoji ??, Symbol ?, Text [B]
 - Responsive tabs: Dashboard, Logs, Users, Games
 - Real-time status indicators with color coding
 - Snackbar notifications for user feedback
@@ -60,6 +63,13 @@ A Twitch baking-themed chat bot with cozy mini-games, redemptions, a tiny leader
 - Clipboard integration for easy copying
 - Form validation with helpful error messages
 - Automatic token formatting and saving
+
+**?? Icon System:**
+- **Emoji Mode**: Beautiful Unicode emojis (?? ?? ?? ??)
+- **Symbol Mode**: Clean Unicode symbols (? ? ? ?)  
+- **Text Mode**: ASCII fallbacks ([B] [L] [>] [#])
+- **Auto-detection**: Automatically chooses best option for your system
+- **Manual override**: Dropdown to switch styles anytime
 
 ---
 
@@ -94,7 +104,7 @@ Access via the "?? Users" tab in the GUI.
 ## Game Controls
 
 Interactive game control panel:
-- **Game Cards:** Visual cards for each game type
+- **Game Cards:** Visual cards for each game type with themed icons
 - **One-click start:** Launch games directly from GUI
 - **Season Controls:** Dropdown to change seasonal themes
 - **Live Status:** See active games and their progress
@@ -198,6 +208,30 @@ Seasons change ingredient pools and theming. Control via GUI dropdown.
 
 ---
 
+## Icon Support
+BakeBot's GUI includes a comprehensive icon system that works on all systems:
+
+**?? Icon Styles:**
+- **Emoji (??)**: Beautiful Unicode emojis for modern systems
+- **Symbol (?)**: Clean Unicode symbols for better compatibility  
+- **Text ([B])**: ASCII fallbacks that work everywhere
+
+**?? Features:**
+- **Auto-detection**: Automatically chooses the best option for your system
+- **Manual selection**: Use the dropdown in the GUI header to switch styles
+- **Themed colors**: Icons automatically match the baking color scheme
+- **Consistent mapping**: Same meaning across all icon styles
+
+**?? Icon Categories:**
+- Core: bread, gear, lock, rocket, stop
+- Interface: home, chart, logs, users, games
+- Actions: search, download, save, edit, trash
+- Status: ready, loading, success, error, warning
+- Seasonal: pumpkin, tree, sun, flower
+- Gaming: trophy, medal, crown, star, coin
+
+---
+
 ## Troubleshooting
 - **Bot won't connect:** Use OAuth wizard to get fresh token
 - **No chat messages:** Check if bot is modded, verify channel name
@@ -205,6 +239,8 @@ Seasons change ingredient pools and theming. Control via GUI dropdown.
 - **OAuth issues:** Follow wizard exactly, ensure https://localhost redirect URI
 - **Data not saving:** Check file permissions on bot_data.sqlite3
 - **GUI not loading:** Ensure Flet is installed: `pip install flet>=0.24.1`
+- **Icons not displaying:** Try switching icon style in the GUI dropdown
+- **Question marks instead of icons:** Use "Text" mode for universal compatibility
 
 ---
 
