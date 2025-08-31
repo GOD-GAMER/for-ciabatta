@@ -1,0 +1,49 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg-info/
+.eggs/
+
+# Virtual envs
+.venv/
+venv/
+env/
+
+# OS/editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Env & secrets
+.env
+.env.*
+!.env.example
+
+# Databases & state
+bot_data.sqlite3
+*.sqlite3
+*.db
+
+# Logs & coverage
+*.log
+logs/
+.coverage
+htmlcov/
+.pytest_cache/
+
+# Build/dist
+build/
+dist/
+
+# Cache
+.cache/
+
+# Node (in case of future web assets)
+node_modules/
+
+# Keep example config
+!bot/config.example.env
