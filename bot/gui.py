@@ -47,10 +47,13 @@ class BakeBotApp:
         self.page.title = "?? BakeBot - Twitch Bot Manager"
         self.page.theme_mode = ft.ThemeMode.LIGHT
         self.page.padding = 20
-        self.page.window.width = 1000
-        self.page.window.height = 700
-        self.page.window.min_width = 800
-        self.page.window.min_height = 600
+        try:
+            self.page.window.width = 1000
+            self.page.window.height = 700
+            self.page.window.min_width = 800
+            self.page.window.min_height = 600
+        except:
+            pass  # Fallback for older Flet versions
         
         # Colors and styling
         self.primary_color = "#D4A574"
@@ -58,6 +61,12 @@ class BakeBotApp:
         self.accent_color = "#F5DEB3"
         self.success_color = "#4CAF50"
         self.error_color = "#F44336"
+        self.white_color = "#FFFFFF"
+        self.black_color = "#000000"
+        self.grey_color = "#9E9E9E"
+        self.grey_700_color = "#616161"
+        self.orange_color = "#FF9800"
+        self.green_400_color = "#66BB6A"
         
         # Setup logging
         setup_logging()
@@ -114,7 +123,7 @@ class BakeBotApp:
             "?? Setup OAuth",
             on_click=self.show_oauth_wizard,
             bgcolor=self.primary_color,
-            color=ft.colors.WHITE
+            color=self.white_color
         )
 
         self.client_id_field = ft.TextField(
@@ -169,7 +178,7 @@ class BakeBotApp:
             "?? Start Bot",
             on_click=self.start_bot,
             bgcolor=self.success_color,
-            color=ft.colors.WHITE,
+            color=self.white_color,
             style=ft.ButtonStyle(shape=ft.RoundedRectangleBorder(radius=8))
         )
         
@@ -177,7 +186,7 @@ class BakeBotApp:
             "?? Stop Bot",
             on_click=self.stop_bot,
             bgcolor=self.error_color,
-            color=ft.colors.WHITE,
+            color=self.white_color,
             disabled=True,
             style=ft.ButtonStyle(shape=ft.RoundedRectangleBorder(radius=8))
         )
@@ -186,7 +195,7 @@ class BakeBotApp:
             "?? Open Leaderboard",
             on_click=self.open_leaderboard,
             bgcolor=self.primary_color,
-            color=ft.colors.WHITE,
+            color=self.white_color,
             style=ft.ButtonStyle(shape=ft.RoundedRectangleBorder(radius=8))
         )
 
@@ -198,7 +207,7 @@ class BakeBotApp:
 
         # Status indicator
         self.status_text = ft.Text("Ready", size=16, color=self.secondary_color)
-        self.status_icon = ft.Text("?", size=16, color=ft.colors.GREY)
+        self.status_icon = ft.Text("?", size=16, color=self.grey_color)
         
         status_row = ft.Row([
             self.status_icon,
@@ -260,7 +269,7 @@ class BakeBotApp:
             "??? Clear Logs",
             on_click=self.clear_logs,
             bgcolor=self.error_color,
-            color=ft.colors.WHITE
+            color=self.white_color
         )
 
         return ft.Container(
@@ -271,7 +280,7 @@ class BakeBotApp:
                 ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
                 ft.Container(
                     content=self.log_view,
-                    bgcolor=ft.colors.BLACK,
+                    bgcolor=self.black_color,
                     border_radius=8,
                     padding=10,
                     expand=True
@@ -284,24 +293,24 @@ class BakeBotApp:
         user_info = ft.Container(
             content=ft.Column([
                 ft.Text("?? User Management", size=20, weight=ft.FontWeight.BOLD, color=self.secondary_color),
-                ft.Text("Manage viewer data, XP, tokens, and permissions", size=14, color=ft.colors.GREY_700),
+                ft.Text("Manage viewer data, XP, tokens, and permissions", size=14, color=self.grey_700_color),
                 ft.Container(height=20),
                 
                 ft.Row([
                     ft.ElevatedButton(
                         "?? View All Users",
                         bgcolor=self.primary_color,
-                        color=ft.colors.WHITE
+                        color=self.white_color
                     ),
                     ft.ElevatedButton(
                         "?? Search User",
                         bgcolor=self.secondary_color,
-                        color=ft.colors.WHITE
+                        color=self.white_color
                     ),
                     ft.ElevatedButton(
                         "?? Export Data",
                         bgcolor=self.success_color,
-                        color=ft.colors.WHITE
+                        color=self.white_color
                     )
                 ], wrap=True, spacing=10),
                 
@@ -323,7 +332,7 @@ class BakeBotApp:
         return ft.Container(
             content=ft.Column([
                 ft.Text("?? Game Controls", size=20, weight=ft.FontWeight.BOLD, color=self.secondary_color),
-                ft.Text("Control bot games and seasonal events", size=14, color=ft.colors.GREY_700),
+                ft.Text("Control bot games and seasonal events", size=14, color=self.grey_700_color),
                 ft.Container(height=20),
                 
                 # Game control cards
@@ -356,7 +365,7 @@ class BakeBotApp:
                                 ft.ElevatedButton(
                                     "Apply Season",
                                     bgcolor=self.primary_color,
-                                    color=ft.colors.WHITE
+                                    color=self.white_color
                                 )
                             ])
                         ]),
@@ -388,11 +397,11 @@ class BakeBotApp:
                 content=ft.Column([
                     ft.Text(icon, size=40, color=self.primary_color),
                     ft.Text(title, size=16, weight=ft.FontWeight.BOLD, text_align=ft.TextAlign.CENTER),
-                    ft.Text(description, size=12, text_align=ft.TextAlign.CENTER, color=ft.colors.GREY_700),
+                    ft.Text(description, size=12, text_align=ft.TextAlign.CENTER, color=self.grey_700_color),
                     ft.ElevatedButton(
                         "Start Game",
                         bgcolor=self.primary_color,
-                        color=ft.colors.WHITE,
+                        color=self.white_color,
                         width=120
                     )
                 ], horizontal_alignment=ft.CrossAxisAlignment.CENTER, spacing=8),
@@ -461,7 +470,7 @@ class BakeBotApp:
                                 "?? Open Developer Console",
                                 on_click=lambda e: webbrowser.open("https://dev.twitch.tv/console/apps"),
                                 bgcolor=self.primary_color,
-                                color=ft.colors.WHITE
+                                color=self.white_color
                             )
                         ], spacing=10),
                         padding=20
@@ -512,7 +521,7 @@ class BakeBotApp:
                                 "?? Save Token",
                                 on_click=save_token,
                                 bgcolor=self.success_color,
-                                color=ft.colors.WHITE
+                                color=self.white_color
                             )
                         ], spacing=10),
                         padding=20
@@ -541,7 +550,7 @@ class BakeBotApp:
 
     def show_snackbar(self, message, color=None):
         snackbar = ft.SnackBar(
-            content=ft.Text(message, color=ft.colors.WHITE),
+            content=ft.Text(message, color=self.white_color),
             bgcolor=color or self.primary_color
         )
         self.page.snack_bar = snackbar
@@ -550,7 +559,7 @@ class BakeBotApp:
 
     def start_bot(self, e):
         self.save_env()
-        self.update_status("Starting...", "??", ft.colors.ORANGE)
+        self.update_status("Starting...", "??", self.orange_color)
         self.start_btn.disabled = True
         self.page.update()
         
@@ -561,7 +570,7 @@ class BakeBotApp:
             self.page.update()
 
     def stop_bot(self, e):
-        self.update_status("Stopping...", "??", ft.colors.ORANGE)
+        self.update_status("Stopping...", "??", self.orange_color)
         self.stop_btn.disabled = True
         self.page.update()
         self.bot_manager.stop_bot(self.bot_callback)
@@ -572,7 +581,7 @@ class BakeBotApp:
             self.start_btn.disabled = True
             self.stop_btn.disabled = False
         elif status == 'stopped':
-            self.update_status("Bot Stopped", "?", ft.colors.GREY)
+            self.update_status("Bot Stopped", "?", self.grey_color)
             self.start_btn.disabled = False
             self.stop_btn.disabled = True
         elif status == 'error':
@@ -602,7 +611,7 @@ class BakeBotApp:
         log_entry = ft.Container(
             content=ft.Text(
                 f"[{timestamp}] {message}",
-                color=ft.colors.GREEN_400,
+                color=self.green_400_color,
                 font_family="Courier"
             ),
             padding=ft.padding.symmetric(vertical=2)
