@@ -27,7 +27,7 @@ class BakingGames:
             'type': 'guess', 'answer': answer, 'end': time.time() + duration,
             'hint': answer[0] + ('*' * (len(answer) - 1))
         }
-        await ctx.send(f"Guess the Ingredient! Hint: {self.current_game['hint']} — You have {duration}s. Use chat to guess!")
+        await ctx.send(f"Guess the Ingredient! Hint: {self.current_game['hint']} - You have {duration}s. Use chat to guess!")
         await asyncio.sleep(duration)
         if self.current_game and time.time() >= self.current_game['end']:
             await ctx.send(f"Time's up! The ingredient was: {answer}.")
@@ -45,7 +45,7 @@ class BakingGames:
         if not question:
             question, answer = random.choice(qa)
         self.current_game = {'type': 'trivia', 'answer': answer, 'end': time.time() + duration}
-        await ctx.send(f"Oven Timer Trivia: {question} — {duration}s to answer!")
+        await ctx.send(f"Oven Timer Trivia: {question} - {duration}s to answer!")
         await asyncio.sleep(duration)
         if self.current_game:
             await ctx.send(f"Ding! Time's up. Correct answer: {answer}.")

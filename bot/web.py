@@ -3,15 +3,19 @@ from aiohttp import web
 import aiosqlite
 import qrcode
 import io
+import logging
+
+logger = logging.getLogger('BakeBot.Web')
 
 async def create_app(db_path: str):
     app = web.Application()
 
     async def leaderboard(request):
+        logger.debug('GET /leaderboard')
         async with aiosqlite.connect(db_path) as db:
             async with db.execute('SELECT username, xp, wins FROM users ORDER BY xp DESC LIMIT 20') as cur:
                 rows = await cur.fetchall()
-        items = ''.join(f"<li>{u} — {xp} XP — {w} wins</li>" for u, xp, w in rows)
+        items = ''.join(f"<li>{u} - {xp} XP - {w} wins</li>" for u, xp, w in rows)
         html = f"""
         <html><head><title>Leaderboard</title></head>
         <body>
@@ -22,6 +26,7 @@ async def create_app(db_path: str):
         return web.Response(text=html, content_type='text/html')
 
     async def recipe(request):
+        logger.debug('GET /recipes')
         html = """
         <html><head><title>Recipes</title></head>
         <body>
@@ -35,6 +40,7 @@ async def create_app(db_path: str):
 
     async def qr(request):
         url = request.query.get('url', 'https://twitch.tv')
+        logger.debug('GET /qr url=%s', url)
         img = qrcode.make(url)
         bio = io.BytesIO()
         img.save(bio, format='PNG')
