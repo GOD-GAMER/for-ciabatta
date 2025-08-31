@@ -32,8 +32,8 @@ A Twitch baking-themed chat bot with cozy mini-games, redemptions, a tiny leader
    python -m bot.gui
    ```
 3. In the GUI
-   - Click Get Token
-   - Sign in with your bot account and authorize
+   - Click Get Token (Manual)
+   - Follow the OAuth steps to get your token
    - Enter your channel name
    - Click Start Bot
 4. Open the leaderboard
@@ -41,12 +41,15 @@ A Twitch baking-themed chat bot with cozy mini-games, redemptions, a tiny leader
 
 ---
 
-## Get a Twitch OAuth Token (built-in)
+## Get a Twitch OAuth Token (manual process)
 1. Create a Twitch Application: https://dev.twitch.tv/console/apps
-2. Add redirect URL: http://127.0.0.1:53682/callback
+2. Add redirect URL: https://localhost (HTTPS required by Twitch)
 3. Paste your Client ID into the GUI
-4. Click Get Token and authorize chat:read chat:edit
-5. The GUI fills TWITCH_TOKEN as oauth:...
+4. Click Get Token (Manual) and follow the popup instructions:
+   - Copy the OAuth URL or open it in browser
+   - Authorize chat:read and chat:edit scopes
+   - Copy the access_token from the redirect URL (after #access_token=)
+   - Paste it in the token field as oauth:YOUR_ACCESS_TOKEN
 
 Tip: Keep your token secret. Revoke it in Twitch security settings if needed.
 
@@ -58,7 +61,7 @@ The GUI writes these values to .env for you. You can also edit manually.
 | Key | Description | Default |
 |-----|-------------|---------|
 | TWITCH_TOKEN | OAuth token (starts with oauth:) | - |
-| TWITCH_CLIENT_ID | Needed for GUI Get Token flow | - |
+| TWITCH_CLIENT_ID | Needed for manual OAuth flow | - |
 | TWITCH_CHANNEL | Your channel login name | - |
 | PREFIX | Command prefix | ! |
 | ENABLE_EVENTSUB | Enable Channel Points listener | false |
@@ -159,13 +162,17 @@ Notes:
 
 ## Troubleshooting
 - Bot will not connect
-  - Token invalid/missing oauth: prefix -> Click Get Token again
+  - Token invalid/missing oauth: prefix -> Get a new token via manual OAuth
   - Channel name wrong -> Use login name (lowercase)
 - Can not send chat
   - Bot not a mod or Twitch rate-limiting -> Mod the bot, slow down
   - Prefix mismatch -> Check PREFIX
 - Web not loading
   - Port busy -> Change WEB_PORT
+- OAuth issues
+  - Use https://localhost as redirect URI in your Twitch app
+  - Copy the access_token from the URL fragment after authorization
+  - Ensure token starts with oauth: prefix
 - EventSub issues
   - 403 / signature failed -> Secret mismatch or wrong URL
   - Tunnel not reachable -> Ensure public HTTPS URL is active

@@ -77,11 +77,11 @@ class MainWindow(QtWidgets.QMainWindow):
 
         token_row = QtWidgets.QHBoxLayout()
         token_row.addWidget(self.token_edit)
-        self.oauth_btn = QtWidgets.QPushButton('Get Token')
+        self.oauth_btn = QtWidgets.QPushButton('Get Token (Manual)')
         token_row.addWidget(self.oauth_btn)
 
         form.addRow('Twitch OAuth Token (oauth:...)', token_row)
-        form.addRow('Twitch Client ID (for Get Token)', self.client_id_edit)
+        form.addRow('Twitch Client ID (for manual OAuth)', self.client_id_edit)
         form.addRow('Channel', self.channel_edit)
         form.addRow('Prefix', self.prefix_edit)
         form.addRow('Web Host', self.web_host_edit)
@@ -111,7 +111,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.worker = BotWorker()
         self.start_btn.clicked.connect(self.on_start)
         self.stop_btn.clicked.connect(self.on_stop)
-        self.oauth_btn.clicked.connect(self.on_oauth)
+        self.oauth_btn.clicked.connect(self.on_manual_oauth)
         self.worker.started.connect(self.on_bot_started)
         self.worker.stopped.connect(self.on_bot_stopped)
         self.worker.error.connect(self.on_bot_error)
@@ -163,82 +163,52 @@ class MainWindow(QtWidgets.QMainWindow):
         self.stop_btn.setEnabled(False)
 
     @QtCore.Slot()
-    def on_oauth(self):
-        asyncio.create_task(self.oauth_flow())
-
-    async def oauth_flow(self):
-        from aiohttp import web
+    def on_manual_oauth(self):
         client_id = (self.client_id_edit.text() or '').strip()
         if not client_id:
-            self.log_area.appendPlainText('Client ID required for OAuth. Visit https://dev.twitch.tv/console/apps to create one and add http://127.0.0.1:53682/callback as a redirect URL.')
+            msg = """Manual OAuth Steps:
+1. Create a Twitch Application at https://dev.twitch.tv/console/apps
+2. Add a redirect URL: https://localhost (HTTPS required)
+3. Paste your Client ID above
+4. Click this button again to open the auth URL
+5. Authorize, then copy the access_token from the URL fragment
+6. Paste it as oauth:TOKEN in the token field"""
+            QtWidgets.QMessageBox.information(self, 'OAuth Setup', msg)
             return
-        port = 53682
-        redirect_uri = f'http://127.0.0.1:{port}/callback'
-        scopes = 'chat:read chat:edit'
-        app = web.Application()
-        token_future: asyncio.Future = asyncio.get_running_loop().create_future()
-
-        async def callback(request):
-            logging.getLogger('BakeBot.GUI').info('OAuth callback received')
-            html = f"""
-            <html><body>
-            <p>Completing Twitch sign-in...</p>
-            <script>
-              (function(){{
-                const hash = window.location.hash.substring(1);
-                const params = new URLSearchParams(hash);
-                const token = params.get('access_token');
-                if(token){{
-                  fetch('/token', {{method:'POST', headers:{{'Content-Type':'application/json'}}, body: JSON.stringify({{token}})}})
-                    .then(_=>document.body.innerText='Token received. You may close this tab.');
-                }} else {{
-                  document.body.innerText='No token found in URL.';
-                }}
-              }})();
-            </script>
-            </body></html>
-            """
-            return web.Response(text=html, content_type='text/html')
-
-        async def receive_token(request):
-            try:
-                data = await request.json()
-                token = data if isinstance(data, str) else data.get('token')
-                if token and not token_future.done():
-                    token_future.set_result(token)
-                logging.getLogger('BakeBot.GUI').info('OAuth token captured')
-                return web.json_response({'ok': True})
-            except Exception:
-                logging.getLogger('BakeBot.GUI').exception('Failed to parse token JSON')
-                return web.json_response({'ok': False}, status=400)
-
-        app.add_routes([
-            web.get('/callback', callback),
-            web.post('/token', receive_token),
-        ])
-        runner = web.AppRunner(app)
-        await runner.setup()
-        site = web.TCPSite(runner, '127.0.0.1', port)
-        await site.start()
+        
+        # Generate manual OAuth URL
         auth_url = (
             'https://id.twitch.tv/oauth2/authorize'
             f'?client_id={client_id}'
-            f'&redirect_uri={redirect_uri}'
+            '&redirect_uri=https://localhost'
             '&response_type=token'
-            f'&scope={scopes.replace(" ", "+")}'
-
+            '&scope=chat:read+chat:edit'
             '&force_verify=true'
         )
-        logging.getLogger('BakeBot.GUI').info('Opening browser for Twitch authorization')
-        QDesktopServices.openUrl(QUrl(auth_url))
-        try:
-            access_token = await asyncio.wait_for(token_future, timeout=180)
-            self.token_edit.setText(f'oauth:{access_token}')
-            logging.getLogger('BakeBot.GUI').info('Token filled into GUI')
-        except asyncio.TimeoutError:
-            logging.getLogger('BakeBot.GUI').warning('Timed out waiting for token')
-        finally:
-            await runner.cleanup()
+        
+        msg = f"""Manual OAuth Process:
+1. Click 'Copy URL' to copy the authorization URL
+2. Open it in your browser and authorize
+3. Copy the access_token from the redirected URL (after #access_token=)
+4. Paste it in the token field as: oauth:ACCESS_TOKEN
+
+URL: {auth_url}"""
+        
+        msgBox = QtWidgets.QMessageBox(self)
+        msgBox.setWindowTitle('Manual OAuth')
+        msgBox.setText(msg)
+        copy_btn = msgBox.addButton('Copy URL', QtWidgets.QMessageBox.ActionRole)
+        open_btn = msgBox.addButton('Open in Browser', QtWidgets.QMessageBox.ActionRole)
+        msgBox.addButton('Cancel', QtWidgets.QMessageBox.RejectRole)
+        
+        msgBox.exec()
+        
+        if msgBox.clickedButton() == copy_btn:
+            QtWidgets.QApplication.clipboard().setText(auth_url)
+            self.log_area.appendPlainText('OAuth URL copied to clipboard')
+        elif msgBox.clickedButton() == open_btn:
+            QDesktopServices.openUrl(QUrl(auth_url))
+            self.log_area.appendPlainText('OAuth URL opened in browser')
 
 
 def main():
