@@ -7,8 +7,19 @@ from PySide6.QtCore import QUrl
 import qasync
 from dotenv import set_key
 from aiohttp import web
+import logging
 
 from .bot import BakeBot
+from .logging_config import setup_logging
+
+class LogHandler(QtCore.QObject, logging.Handler):
+    new_record = QtCore.Signal(str)
+    def __init__(self):
+        QtCore.QObject.__init__(self)
+        logging.Handler.__init__(self)
+    def emit(self, record: logging.LogRecord):
+        msg = self.format(record)
+        self.new_record.emit(msg)
 
 class BotWorker(QtCore.QObject):
     started = QtCore.Signal()
@@ -24,7 +35,6 @@ class BotWorker(QtCore.QObject):
         try:
             self._bot = BakeBot()
             self.started.emit()
-            # twitchio run keeps loop; we run in task
             self._task = asyncio.create_task(self._bot.start())
         except Exception as e:
             self.error.emit(str(e))
@@ -43,7 +53,13 @@ class MainWindow(QtWidgets.QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle('BakeBot Setup')
-        self.resize(700, 560)
+        self.resize(800, 640)
+
+        # Logging
+        setup_logging()
+        self.qt_log_handler = LogHandler()
+        self.qt_log_handler.setFormatter(logging.Formatter('[%(asctime)s] %(levelname)s %(name)s: %(message)s', datefmt='%H:%M:%S'))
+        logging.getLogger().addHandler(self.qt_log_handler)
 
         self.token_edit = QtWidgets.QLineEdit()
         self.token_edit.setEchoMode(QtWidgets.QLineEdit.Password)
@@ -77,6 +93,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.log_area = QtWidgets.QPlainTextEdit()
         self.log_area.setReadOnly(True)
+        self.qt_log_handler.new_record.connect(self.log_area.appendPlainText)
 
         btns = QtWidgets.QHBoxLayout()
         btns.addWidget(self.start_btn)
@@ -100,7 +117,6 @@ class MainWindow(QtWidgets.QMainWindow):
         self.worker.error.connect(self.on_bot_error)
 
     def load_env(self):
-        # Load from current environment if present
         self.token_edit.setText(os.getenv('TWITCH_TOKEN', ''))
         self.client_id_edit.setText(os.getenv('TWITCH_CLIENT_ID', ''))
         self.channel_edit.setText(os.getenv('TWITCH_CHANNEL', ''))
@@ -120,29 +136,29 @@ class MainWindow(QtWidgets.QMainWindow):
     @QtCore.Slot()
     def on_start(self):
         self.persist_env()
-        self.log_area.appendPlainText('Starting bot...')
+        logging.getLogger('BakeBot.GUI').info('Starting bot...')
         self.start_btn.setEnabled(False)
         self.stop_btn.setEnabled(True)
         asyncio.create_task(self.worker.start_bot())
 
     @QtCore.Slot()
     def on_stop(self):
-        self.log_area.appendPlainText('Stopping bot...')
+        logging.getLogger('BakeBot.GUI').info('Stopping bot...')
         asyncio.create_task(self.worker.stop_bot())
 
     @QtCore.Slot()
     def on_bot_started(self):
-        self.log_area.appendPlainText('Bot started.')
+        logging.getLogger('BakeBot.GUI').info('Bot started.')
 
     @QtCore.Slot()
     def on_bot_stopped(self):
-        self.log_area.appendPlainText('Bot stopped.')
+        logging.getLogger('BakeBot.GUI').info('Bot stopped.')
         self.start_btn.setEnabled(True)
         self.stop_btn.setEnabled(False)
 
     @QtCore.Slot(str)
     def on_bot_error(self, msg: str):
-        self.log_area.appendPlainText(f'Error: {msg}')
+        logging.getLogger('BakeBot.GUI').error('Error: %s', msg)
         self.start_btn.setEnabled(True)
         self.stop_btn.setEnabled(False)
 
@@ -151,11 +167,11 @@ class MainWindow(QtWidgets.QMainWindow):
         asyncio.create_task(self.oauth_flow())
 
     async def oauth_flow(self):
+        from aiohttp import web
         client_id = (self.client_id_edit.text() or '').strip()
         if not client_id:
             self.log_area.appendPlainText('Client ID required for OAuth. Visit https://dev.twitch.tv/console/apps to create one and add http://127.0.0.1:53682/callback as a redirect URL.')
             return
-        # Simple local server to capture implicit grant token
         port = 53682
         redirect_uri = f'http://127.0.0.1:{port}/callback'
         scopes = 'chat:read chat:edit'
@@ -163,7 +179,7 @@ class MainWindow(QtWidgets.QMainWindow):
         token_future: asyncio.Future = asyncio.get_running_loop().create_future()
 
         async def callback(request):
-            # Serve a small page that posts the fragment token to /token
+            logging.getLogger('BakeBot.GUI').info('OAuth callback received')
             html = f"""
             <html><body>
             <p>Completing Twitch sign-in...</p>
@@ -190,8 +206,10 @@ class MainWindow(QtWidgets.QMainWindow):
                 token = data if isinstance(data, str) else data.get('token')
                 if token and not token_future.done():
                     token_future.set_result(token)
+                logging.getLogger('BakeBot.GUI').info('OAuth token captured')
                 return web.json_response({'ok': True})
             except Exception:
+                logging.getLogger('BakeBot.GUI').exception('Failed to parse token JSON')
                 return web.json_response({'ok': False}, status=400)
 
         app.add_routes([
@@ -208,26 +226,38 @@ class MainWindow(QtWidgets.QMainWindow):
             f'&redirect_uri={redirect_uri}'
             '&response_type=token'
             f'&scope={scopes.replace(" ", "+")}'
+
             '&force_verify=true'
         )
-        self.log_area.appendPlainText('Opening browser for Twitch authorization...')
+        logging.getLogger('BakeBot.GUI').info('Opening browser for Twitch authorization')
         QDesktopServices.openUrl(QUrl(auth_url))
         try:
             access_token = await asyncio.wait_for(token_future, timeout=180)
             self.token_edit.setText(f'oauth:{access_token}')
-            self.log_area.appendPlainText('Token captured and filled into the form.')
+            logging.getLogger('BakeBot.GUI').info('Token filled into GUI')
         except asyncio.TimeoutError:
-            self.log_area.appendPlainText('Timed out waiting for token. Ensure you completed the authorization.')
+            logging.getLogger('BakeBot.GUI').warning('Timed out waiting for token')
         finally:
             await runner.cleanup()
 
-async def main_async():
+
+def main():
+    # Set High DPI rounding policy before creating the QApplication (if available)
+    try:
+        QtCore.QCoreApplication.setHighDpiScaleFactorRoundingPolicy(
+            QtCore.Qt.HighDpiScaleFactorRoundingPolicy.PassThrough
+        )
+    except AttributeError:
+        pass
+
     app = QtWidgets.QApplication([])
     window = MainWindow()
     window.show()
-    with qasync.QEventLoop(app) as loop:
-        asyncio.set_event_loop(loop)
-        await loop.run_forever()
+
+    loop = qasync.QEventLoop(app)
+    asyncio.set_event_loop(loop)
+    with loop:
+        loop.run_forever()
 
 if __name__ == '__main__':
-    qasync.run(main_async())
+    main()
