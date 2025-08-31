@@ -3,10 +3,10 @@ import hmac
 import hashlib
 import json
 import asyncio
+import logging
 from aiohttp import web, ClientSession
 
 # Minimal EventSub handler: verifies Twitch signatures and dispatches channel point redemptions
-# This provides a simple local webhook server. For production, use a public HTTPS endpoint and proper secret management.
 
 class EventSubServer:
     def __init__(self, storage, redeem_handler):
@@ -14,6 +14,9 @@ class EventSubServer:
         self.redeem_handler = redeem_handler
         self.secret = os.getenv('EVENTSUB_SECRET', 'changeme')
         self.session = None
+        self._runner = None
+        self._site = None
+        self.logger = logging.getLogger('BakeBot.EventSub')
 
     async def start(self, host='127.0.0.1', port=8081):
         self.session = ClientSession()
@@ -25,9 +28,10 @@ class EventSubServer:
         await site.start()
         self._runner = runner
         self._site = site
-        print(f'EventSub listening on http://{host}:{port}/eventsub')
+        self.logger.info('EventSub listening on http://%s:%s/eventsub', host, port)
 
     async def stop(self):
+        self.logger.info('Stopping EventSub')
         if self._runner:
             await self._runner.cleanup()
         if self.session:
@@ -35,21 +39,25 @@ class EventSubServer:
 
     async def _handle(self, request: web.Request):
         body = await request.read()
-        # Verify signature
         message_id = request.headers.get('Twitch-Eventsub-Message-Id', '')
         timestamp = request.headers.get('Twitch-Eventsub-Message-Timestamp', '')
         signature = request.headers.get('Twitch-Eventsub-Message-Signature', '')
-        computed = 'sha256=' + hmac.new(self.secret.encode(), (message_id + timestamp + body.decode()).encode(), hashlib.sha256).hexdigest()
+        payload = body.decode()
+        computed = 'sha256=' + hmac.new(self.secret.encode(), (message_id + timestamp + payload).encode(), hashlib.sha256).hexdigest()
         if not hmac.compare_digest(signature, computed):
+            self.logger.warning('Signature mismatch id=%s ts=%s', message_id, timestamp)
             return web.Response(status=403)
-        data = json.loads(body.decode())
+        data = json.loads(payload)
         msg_type = request.headers.get('Twitch-Eventsub-Message-Type')
+        self.logger.debug('EventSub message type=%s id=%s', msg_type, message_id)
         if msg_type == 'webhook_callback_verification':
+            self.logger.info('Verification challenge received')
             return web.Response(text=data['challenge'])
         if msg_type == 'notification':
             event = data.get('event', {})
-            if data.get('subscription', {}).get('type') == 'channel.channel_points_custom_reward_redemption.add':
-                # Normalize to our redeem handler
+            sub_type = data.get('subscription', {}).get('type')
+            self.logger.info('Notification type=%s user=%s', sub_type, event.get('user_name'))
+            if sub_type == 'channel.channel_points_custom_reward_redemption.add':
                 user = event.get('user_name', '')
                 reward = event.get('reward', {}).get('title', '')
                 asyncio.create_task(self.redeem_handler(user, reward))
