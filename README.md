@@ -146,10 +146,66 @@ Beautifully organized settings panel with auto-save:
 - !accept - Accept a bread fight challenge
 - !level [@username] - Show level and combat stats
 
+**Token Economy:**
+- !shop [category] - Browse the bakery shop
+- !buy <item> - Purchase items from the bakery shop
+- !tokens [@username] - Check token balance
+- !daily - Claim daily token bonus (with streak rewards)
+- !hourly - Claim hourly token bonus
+- !work - Work in the bakery for tokens (5min cooldown)
+- !gift @username amount - Gift tokens to another user
+
 Cooldowns:
 - Commands: 3s per user
 - Participation XP: 15s per user
 - Rate limit: 8 messages per 10s per user
+
+---
+
+## Bakery Shop System
+
+The bakery shop offers baking-themed items organized in categories:
+
+**?? Boosts & Buffs:**
+- **Flour Power Boost** (25??) - Double XP gain for 10 minutes
+- **Yeast Feast** (20??) - Instant +100 XP
+- **Sugar Rush** (30??) - Skip all cooldowns for 5 minutes
+
+**? Cosmetics & Fun:**
+- **Golden Whisk** (50??) - Special [Master Baker] chat title
+- **Rainbow Sprinkles** (15??) - Colorful chat celebration effect
+- **Cookie Jar** (12??) - Mystery box with random rewards
+
+**?? Combat & Games:**
+- **Sourdough Shield** (40??) - Extra health in bread fights (+20 HP)
+- **Mixing Mastery** (35??) - Extra damage in bread fights (+5 damage)
+
+**??? Utilities:**
+- **Recipe Book** (18??) - Get 3 random baking recipes
+- **Timer Precision** (22??) - Extra time for trivia questions (+5 seconds)
+
+---
+
+## Token Economy
+
+**?? How to Earn Tokens:**
+- **Daily Bonus:** 10+ tokens (streak bonuses up to +20)
+- **Hourly Bonus:** 3 tokens every hour
+- **Work System:** 3-12 tokens per work session (5min cooldown)
+- **Game Victories:** 5 tokens per win
+- **Participation:** Chance for bonus tokens during active chat
+
+**Ways to Spend:**
+- Bakery shop items (12-50 tokens)
+- Classic redemptions (5-20 tokens) 
+- Gift tokens to other viewers
+- Special event purchases
+
+**?? Token Features:**
+- **Daily Streaks:** Consecutive days increase daily bonus
+- **Work Variety:** 6 different bakery jobs with varying rewards
+- **Gift System:** Transfer tokens to other users (small fee applies)
+- **Mystery Rewards:** Cookie jar gambling with potential jackpots
 
 ---
 
@@ -171,8 +227,8 @@ The bread fighting mini-game allows viewers to engage in turn-based combat:
 
 **Combat Stats:**
 - **Level:** Calculated from XP (every 100 XP = 1 level)
-- **Health:** 50 + (level × 10) 
-- **Base Damage:** 10 + (level × 2)
+- **Health:** 50 + (level × 10) + shop bonuses
+- **Base Damage:** 10 + (level × 2) + shop bonuses
 - **Damage Modifiers:** Question difficulty and answer accuracy
 
 **Question Types:**
@@ -186,6 +242,9 @@ The bread fighting mini-game allows viewers to engage in turn-based combat:
 - **Participation:** +1 XP per user every 15s
 - **Win a game:** +25 XP and +5 tokens
 - **Win a bread fight:** +25 XP and +5 tokens
+- **Daily bonus:** +10 tokens (streak bonuses available)
+- **Hourly bonus:** +3 tokens
+- **Work in bakery:** +3-12 tokens per session
 - **!redeem xp_boost** ? +50 XP (costs 10 tokens)
 - **!redeem confetti** ? fun effect (5 tokens)
 - **!redeem doublexp** ? flavor message (20 tokens)

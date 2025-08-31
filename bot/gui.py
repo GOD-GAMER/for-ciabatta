@@ -690,6 +690,11 @@ class BakeBotApp:
             self.log_view.controls.pop(0)
         self.page.update()
 
+@app.route('/shop')
+def shop():
+    """Bakery shop page"""
+    return render_template('shop.html')
+
 def main(page: ft.Page):
     BakeBotApp(page)
 

@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BakeBot - Bakery Shop</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #F5DEB3 0%, #D4A574 100%);
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        
+        .header h1 {
+            color: #8B4513;
+            text-align: center;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .nav {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .nav a {
+            background: #8B4513;
+            color: white;
+            padding: 10px 20px;
+            text-decoration: none;
+            border-radius: 6px;
+            transition: background 0.3s;
+        }
+        
+        .nav a:hover, .nav a.active {
+            background: #A0522D;
+        }
+        
+        .shop-section {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        
+        .shop-section h2 {
+            color: #8B4513;
+            margin-bottom: 15px;
+            font-size: 1.5em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .items-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .item-card {
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-radius: 12px;
+            padding: 20px;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+        
+        .item-card:hover {
+            transform: translateY(-2px);
+            border-color: #D4A574;
+            box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+        }
+        
+        .item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .item-name {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #8B4513;
+        }
+        
+        .item-cost {
+            background: #D4A574;
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 0.9em;
+        }
+        
+        .item-description {
+            color: #666;
+            margin-bottom: 15px;
+            line-height: 1.4;
+        }
+        
+        .item-category {
+            display: inline-block;
+            background: #e9ecef;
+            color: #666;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 0.8em;
+            text-transform: uppercase;
+        }
+        
+        .boost { border-left: 4px solid #4CAF50; }
+        .cosmetic { border-left: 4px solid #9C27B0; }
+        .fun { border-left: 4px solid #FF9800; }
+        .combat { border-left: 4px solid #F44336; }
+        .utility { border-left: 4px solid #2196F3; }
+        .gamble { border-left: 4px solid #FFD700; }
+        
+        .earning-section {
+            background: linear-gradient(135deg, #E8F5E8 0%, #C8E6C9 100%);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 2px solid #4CAF50;
+        }
+        
+        .earning-methods {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        .earning-card {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #4CAF50;
+        }
+        
+        .earning-title {
+            font-weight: bold;
+            color: #2E7D32;
+            margin-bottom: 5px;
+        }
+        
+        .earning-reward {
+            color: #4CAF50;
+            font-weight: bold;
+        }
+        
+        .usage-info {
+            background: #E3F2FD;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 2px solid #2196F3;
+        }
+        
+        .command-example {
+            background: #263238;
+            color: #66BB6A;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            margin: 5px 0;
+            display: inline-block;
+        }
+        
+        @media (max-width: 768px) {
+            .container { padding: 10px; }
+            .items-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>?? Bakery Shop</h1>
+            <nav class="nav">
+                <a href="/">Dashboard</a>
+                <a href="/logs">Logs</a>
+                <a href="/users">Users</a>
+                <a href="/games">Games</a>
+                <a href="/shop" class="active">Shop</a>
+            </nav>
+        </div>
+        
+        <div class="usage-info">
+            <h2 style="color: #1976D2; margin-bottom: 15px;">?? How to Use the Shop</h2>
+            <p><strong>Browse:</strong> <span class="command-example">!shop</span> - View all categories</p>
+            <p><strong>Category:</strong> <span class="command-example">!shop boost</span> - View specific category</p>
+            <p><strong>Purchase:</strong> <span class="command-example">!buy flour_power</span> - Buy an item</p>
+            <p><strong>Check Balance:</strong> <span class="command-example">!tokens</span> - See your token balance</p>
+        </div>
+        
+        <div class="earning-section">
+            <h2 style="color: #2E7D32; margin-bottom: 15px;">?? How to Earn Tokens</h2>
+            <div class="earning-methods">
+                <div class="earning-card">
+                    <div class="earning-title">Daily Bonus</div>
+                    <div>Login daily for tokens</div>
+                    <div class="earning-reward">10+ tokens (streak bonuses!)</div>
+                </div>
+                <div class="earning-card">
+                    <div class="earning-title">Hourly Bonus</div>
+                    <div>Check in every hour</div>
+                    <div class="earning-reward">3 tokens</div>
+                </div>
+                <div class="earning-card">
+                    <div class="earning-title">Work in Bakery</div>
+                    <div>Various bakery jobs</div>
+                    <div class="earning-reward">3-12 tokens</div>
+                </div>
+                <div class="earning-card">
+                    <div class="earning-title">Win Games</div>
+                    <div>Trivia, fights, events</div>
+                    <div class="earning-reward">5 tokens + XP</div>
+                </div>
+            </div>
+            <p style="margin-top: 15px; text-align: center;">
+                <span class="command-example">!daily</span>
+                <span class="command-example">!hourly</span>
+                <span class="command-example">!work</span>
+            </p>
+        </div>
+        
+        <!-- Boosts & Buffs -->
+        <div class="shop-section">
+            <h2>?? Boosts & Buffs</h2>
+            <div class="items-grid">
+                <div class="item-card boost">
+                    <div class="item-header">
+                        <div class="item-name">Flour Power Boost</div>
+                        <div class="item-cost">25 ??</div>
+                    </div>
+                    <div class="item-description">Double XP gain for 10 minutes - perfect for grinding levels!</div>
+                    <div class="item-category">boost</div>
+                </div>
+                
+                <div class="item-card boost">
+                    <div class="item-header">
+                        <div class="item-name">Yeast Feast</div>
+                        <div class="item-cost">20 ??</div>
+                    </div>
+                    <div class="item-description">Instant +100 XP boost - level up faster!</div>
+                    <div class="item-category">boost</div>
+                </div>
+                
+                <div class="item-card boost">
+                    <div class="item-header">
+                        <div class="item-name">Sugar Rush</div>
+                        <div class="item-cost">30 ??</div>
+                    </div>
+                    <div class="item-description">Skip all cooldowns for 5 minutes - rapid fire commands!</div>
+                    <div class="item-category">boost</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Cosmetics & Fun -->
+        <div class="shop-section">
+            <h2>? Cosmetics & Fun</h2>
+            <div class="items-grid">
+                <div class="item-card cosmetic">
+                    <div class="item-header">
+                        <div class="item-name">Golden Whisk</div>
+                        <div class="item-cost">50 ??</div>
+                    </div>
+                    <div class="item-description">Prestigious [Master Baker] title for special events!</div>
+                    <div class="item-category">cosmetic</div>
+                </div>
+                
+                <div class="item-card fun">
+                    <div class="item-header">
+                        <div class="item-name">Rainbow Sprinkles</div>
+                        <div class="item-cost">15 ??</div>
+                    </div>
+                    <div class="item-description">Colorful chat celebration effect that lights up the stream!</div>
+                    <div class="item-category">fun</div>
+                </div>
+                
+                <div class="item-card gamble">
+                    <div class="item-header">
+                        <div class="item-name">Cookie Jar</div>
+                        <div class="item-cost">12 ??</div>
+                    </div>
+                    <div class="item-description">Mystery box with random rewards - could be XP, tokens, or jackpots!</div>
+                    <div class="item-category">gamble</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Combat & Games -->
+        <div class="shop-section">
+            <h2>?? Combat & Games</h2>
+            <div class="items-grid">
+                <div class="item-card combat">
+                    <div class="item-header">
+                        <div class="item-name">Sourdough Shield</div>
+                        <div class="item-cost">40 ??</div>
+                    </div>
+                    <div class="item-description">Extra health in bread fights (+20 HP) - tank more damage!</div>
+                    <div class="item-category">combat</div>
+                </div>
+                
+                <div class="item-card combat">
+                    <div class="item-header">
+                        <div class="item-name">Mixing Mastery</div>
+                        <div class="item-cost">35 ??</div>
+                    </div>
+                    <div class="item-description">Extra damage in bread fights (+5 damage) - hit harder!</div>
+                    <div class="item-category">combat</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Utilities -->
+        <div class="shop-section">
+            <h2>??? Utilities</h2>
+            <div class="items-grid">
+                <div class="item-card utility">
+                    <div class="item-header">
+                        <div class="item-name">Personal Recipe Book</div>
+                        <div class="item-cost">18 ??</div>
+                    </div>
+                    <div class="item-description">Get 3 random baking recipes to expand your knowledge!</div>
+                    <div class="item-category">utility</div>
+                </div>
+                
+                <div class="item-card utility">
+                    <div class="item-header">
+                        <div class="item-name">Timer Precision</div>
+                        <div class="item-cost">22 ??</div>
+                    </div>
+                    <div class="item-description">Extra time for trivia questions (+5 seconds) - more time to think!</div>
+                    <div class="item-category">utility</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
