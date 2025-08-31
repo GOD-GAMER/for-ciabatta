@@ -6,6 +6,5 @@ qrcode[pil]>=7.4.2
 uvloop>=0.19.0; sys_platform == 'linux' or sys_platform == 'darwin'
 humanize>=4.9.0
 rapidfuzz>=3.9.7
-flet>=0.24.1
-emoji>=2.12.1
-fonttools>=4.53.1
+flask>=3.0.0
+flask-socketio>=5.3.6fonttools>=4.53.1
