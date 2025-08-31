@@ -1,233 +1,642 @@
-import os
+import flet as ft
 import asyncio
-from typing import Optional
-from PySide6 import QtWidgets, QtCore
-from PySide6.QtGui import QIcon, QDesktopServices
-from PySide6.QtCore import QUrl
-import qasync
-from dotenv import set_key
-from aiohttp import web
+import threading
+import webbrowser
+import os
+import time
 import logging
+from datetime import datetime
+from dotenv import set_key
 
 from .bot import BakeBot
 from .logging_config import setup_logging
 
-class LogHandler(QtCore.QObject, logging.Handler):
-    new_record = QtCore.Signal(str)
+class BotManager:
     def __init__(self):
-        QtCore.QObject.__init__(self)
-        logging.Handler.__init__(self)
-    def emit(self, record: logging.LogRecord):
-        msg = self.format(record)
-        self.new_record.emit(msg)
+        self.bot = None
+        self.bot_task = None
+        self.loop = None
+        self.thread = None
 
-class BotWorker(QtCore.QObject):
-    started = QtCore.Signal()
-    stopped = QtCore.Signal()
-    error = QtCore.Signal(str)
+    def start_bot(self, callback):
+        if self.thread and self.thread.is_alive():
+            return False
+        self.thread = threading.Thread(target=self._run_bot, args=(callback,))
+        self.thread.daemon = True
+        self.thread.start()
+        return True
 
-    def __init__(self):
-        super().__init__()
-        self._bot: Optional[BakeBot] = None
-        self._task: Optional[asyncio.Task] = None
-
-    async def start_bot(self):
+    def _run_bot(self, callback):
         try:
-            self._bot = BakeBot()
-            self.started.emit()
-            self._task = asyncio.create_task(self._bot.start())
+            self.loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(self.loop)
+            self.bot = BakeBot()
+            callback('started')
+            self.loop.run_until_complete(self.bot.start())
         except Exception as e:
-            self.error.emit(str(e))
+            callback('error', str(e))
 
-    async def stop_bot(self):
-        try:
-            if self._bot:
-                await self._bot.shutdown()
-            if self._task:
-                self._task.cancel()
-            self.stopped.emit()
-        except Exception as e:
-            self.error.emit(str(e))
+    def stop_bot(self, callback):
+        if self.loop and self.bot:
+            asyncio.run_coroutine_threadsafe(self.bot.shutdown(), self.loop)
+            callback('stopped')
 
-class MainWindow(QtWidgets.QMainWindow):
-    def __init__(self):
-        super().__init__()
-        self.setWindowTitle('BakeBot Setup')
-        self.resize(800, 640)
-
-        # Logging
+class BakeBotApp:
+    def __init__(self, page: ft.Page):
+        self.page = page
+        self.page.title = "?? BakeBot - Twitch Bot Manager"
+        self.page.theme_mode = ft.ThemeMode.LIGHT
+        self.page.padding = 20
+        self.page.window_width = 1000
+        self.page.window_height = 700
+        self.page.window_min_width = 800
+        self.page.window_min_height = 600
+        
+        # Colors and styling
+        self.primary_color = "#D4A574"
+        self.secondary_color = "#8B4513" 
+        self.accent_color = "#F5DEB3"
+        self.success_color = "#4CAF50"
+        self.error_color = "#F44336"
+        
+        # Setup logging
         setup_logging()
-        self.qt_log_handler = LogHandler()
-        self.qt_log_handler.setFormatter(logging.Formatter('[%(asctime)s] %(levelname)s %(name)s: %(message)s', datefmt='%H:%M:%S'))
-        logging.getLogger().addHandler(self.qt_log_handler)
-
-        self.token_edit = QtWidgets.QLineEdit()
-        self.token_edit.setEchoMode(QtWidgets.QLineEdit.Password)
-        self.client_id_edit = QtWidgets.QLineEdit()
-        self.channel_edit = QtWidgets.QLineEdit()
-        self.prefix_edit = QtWidgets.QLineEdit('!')
-        self.web_host_edit = QtWidgets.QLineEdit('127.0.0.1')
-        self.web_port_edit = QtWidgets.QSpinBox()
-        self.web_port_edit.setRange(1, 65535)
-        self.web_port_edit.setValue(8080)
-
+        self.logger = logging.getLogger('BakeBot.GUI')
+        
+        # Bot manager
+        self.bot_manager = BotManager()
+        
+        # Load environment variables
         self.load_env()
-
-        form = QtWidgets.QFormLayout()
-
-        token_row = QtWidgets.QHBoxLayout()
-        token_row.addWidget(self.token_edit)
-        self.oauth_btn = QtWidgets.QPushButton('Get Token (Manual)')
-        token_row.addWidget(self.oauth_btn)
-
-        form.addRow('Twitch OAuth Token (oauth:...)', token_row)
-        form.addRow('Twitch Client ID (for manual OAuth)', self.client_id_edit)
-        form.addRow('Channel', self.channel_edit)
-        form.addRow('Prefix', self.prefix_edit)
-        form.addRow('Web Host', self.web_host_edit)
-        form.addRow('Web Port', self.web_port_edit)
-
-        self.start_btn = QtWidgets.QPushButton('Start Bot')
-        self.stop_btn = QtWidgets.QPushButton('Stop Bot')
-        self.stop_btn.setEnabled(False)
-
-        self.log_area = QtWidgets.QPlainTextEdit()
-        self.log_area.setReadOnly(True)
-        self.qt_log_handler.new_record.connect(self.log_area.appendPlainText)
-
-        btns = QtWidgets.QHBoxLayout()
-        btns.addWidget(self.start_btn)
-        btns.addWidget(self.stop_btn)
-
-        layout = QtWidgets.QVBoxLayout()
-        layout.addLayout(form)
-        layout.addLayout(btns)
-        layout.addWidget(self.log_area)
-
-        central = QtWidgets.QWidget()
-        central.setLayout(layout)
-        self.setCentralWidget(central)
-
-        self.worker = BotWorker()
-        self.start_btn.clicked.connect(self.on_start)
-        self.stop_btn.clicked.connect(self.on_stop)
-        self.oauth_btn.clicked.connect(self.on_manual_oauth)
-        self.worker.started.connect(self.on_bot_started)
-        self.worker.stopped.connect(self.on_bot_stopped)
-        self.worker.error.connect(self.on_bot_error)
+        
+        # Build UI
+        self.build_ui()
 
     def load_env(self):
-        self.token_edit.setText(os.getenv('TWITCH_TOKEN', ''))
-        self.client_id_edit.setText(os.getenv('TWITCH_CLIENT_ID', ''))
-        self.channel_edit.setText(os.getenv('TWITCH_CHANNEL', ''))
-        self.prefix_edit.setText(os.getenv('PREFIX', '!'))
-        self.web_host_edit.setText(os.getenv('WEB_HOST', '127.0.0.1'))
-        self.web_port_edit.setValue(int(os.getenv('WEB_PORT', '8080')))
+        self.token = os.getenv('TWITCH_TOKEN', '')
+        self.client_id = os.getenv('TWITCH_CLIENT_ID', '')
+        self.channel = os.getenv('TWITCH_CHANNEL', '')
+        self.prefix = os.getenv('PREFIX', '!
+')
+        self.web_host = os.getenv('WEB_HOST', '127.0.0.1')
+        self.web_port = os.getenv('WEB_PORT', '8080')
 
-    def persist_env(self):
+    def save_env(self):
         env_path = os.path.abspath('.env')
-        set_key(env_path, 'TWITCH_TOKEN', self.token_edit.text())
-        set_key(env_path, 'TWITCH_CLIENT_ID', self.client_id_edit.text())
-        set_key(env_path, 'TWITCH_CHANNEL', self.channel_edit.text())
-        set_key(env_path, 'PREFIX', self.prefix_edit.text() or '!')
-        set_key(env_path, 'WEB_HOST', self.web_host_edit.text())
-        set_key(env_path, 'WEB_PORT', str(self.web_port_edit.value()))
+        set_key(env_path, 'TWITCH_TOKEN', self.token_field.value)
+        set_key(env_path, 'TWITCH_CLIENT_ID', self.client_id_field.value)
+        set_key(env_path, 'TWITCH_CHANNEL', self.channel_field.value)
+        set_key(env_path, 'PREFIX', self.prefix_field.value or '!
+')
+        set_key(env_path, 'WEB_HOST', self.web_host_field.value)
+        set_key(env_path, 'WEB_PORT', self.web_port_field.value)
 
-    @QtCore.Slot()
-    def on_start(self):
-        self.persist_env()
-        logging.getLogger('BakeBot.GUI').info('Starting bot...')
-        self.start_btn.setEnabled(False)
-        self.stop_btn.setEnabled(True)
-        asyncio.create_task(self.worker.start_bot())
+    def build_ui(self):
+        # App header
+        header = ft.Container(
+            content=ft.Row([
+                ft.Icon(ft.icons.BAKERY_DINING, size=40, color=self.secondary_color),
+                ft.Text("BakeBot Manager", size=28, weight=ft.FontWeight.BOLD, color=self.secondary_color),
+            ], alignment=ft.MainAxisAlignment.CENTER),
+            padding=ft.padding.only(bottom=20),
+            bgcolor=self.accent_color,
+            border_radius=12,
+            padding=20
+        )
 
-    @QtCore.Slot()
-    def on_stop(self):
-        logging.getLogger('BakeBot.GUI').info('Stopping bot...')
-        asyncio.create_task(self.worker.stop_bot())
-
-    @QtCore.Slot()
-    def on_bot_started(self):
-        logging.getLogger('BakeBot.GUI').info('Bot started.')
-
-    @QtCore.Slot()
-    def on_bot_stopped(self):
-        logging.getLogger('BakeBot.GUI').info('Bot stopped.')
-        self.start_btn.setEnabled(True)
-        self.stop_btn.setEnabled(False)
-
-    @QtCore.Slot(str)
-    def on_bot_error(self, msg: str):
-        logging.getLogger('BakeBot.GUI').error('Error: %s', msg)
-        self.start_btn.setEnabled(True)
-        self.stop_btn.setEnabled(False)
-
-    @QtCore.Slot()
-    def on_manual_oauth(self):
-        client_id = (self.client_id_edit.text() or '').strip()
-        if not client_id:
-            msg = """Manual OAuth Steps:
-1. Create a Twitch Application at https://dev.twitch.tv/console/apps
-2. Add a redirect URL: https://localhost (HTTPS required)
-3. Paste your Client ID above
-4. Click this button again to open the auth URL
-5. Authorize, then copy the access_token from the URL fragment
-6. Paste it as oauth:TOKEN in the token field"""
-            QtWidgets.QMessageBox.information(self, 'OAuth Setup', msg)
-            return
-        
-        # Generate manual OAuth URL
-        auth_url = (
-            'https://id.twitch.tv/oauth2/authorize'
-            f'?client_id={client_id}'
-            '&redirect_uri=https://localhost'
-            '&response_type=token'
-            '&scope=chat:read+chat:edit'
-            '&force_verify=true'
+        # Configuration card
+        self.token_field = ft.TextField(
+            label="Twitch OAuth Token",
+            password=True,
+            value=self.token,
+            expand=True,
+            border_color=self.primary_color
         )
         
-        msg = f"""Manual OAuth Process:
-1. Click 'Copy URL' to copy the authorization URL
-2. Open it in your browser and authorize
-3. Copy the access_token from the redirected URL (after #access_token=)
-4. Paste it in the token field as: oauth:ACCESS_TOKEN
-
-URL: {auth_url}"""
-        
-        msgBox = QtWidgets.QMessageBox(self)
-        msgBox.setWindowTitle('Manual OAuth')
-        msgBox.setText(msg)
-        copy_btn = msgBox.addButton('Copy URL', QtWidgets.QMessageBox.ActionRole)
-        open_btn = msgBox.addButton('Open in Browser', QtWidgets.QMessageBox.ActionRole)
-        msgBox.addButton('Cancel', QtWidgets.QMessageBox.RejectRole)
-        
-        msgBox.exec()
-        
-        if msgBox.clickedButton() == copy_btn:
-            QtWidgets.QApplication.clipboard().setText(auth_url)
-            self.log_area.appendPlainText('OAuth URL copied to clipboard')
-        elif msgBox.clickedButton() == open_btn:
-            QDesktopServices.openUrl(QUrl(auth_url))
-            self.log_area.appendPlainText('OAuth URL opened in browser')
-
-
-def main():
-    # Set High DPI rounding policy before creating the QApplication (if available)
-    try:
-        QtCore.QCoreApplication.setHighDpiScaleFactorRoundingPolicy(
-            QtCore.Qt.HighDpiScaleFactorRoundingPolicy.PassThrough
+        oauth_wizard_btn = ft.ElevatedButton(
+            "Setup OAuth",
+            icon=ft.icons.SECURITY,
+            on_click=self.show_oauth_wizard,
+            bgcolor=self.primary_color,
+            color=ft.colors.WHITE
         )
-    except AttributeError:
-        pass
 
-    app = QtWidgets.QApplication([])
-    window = MainWindow()
-    window.show()
+        self.client_id_field = ft.TextField(
+            label="Twitch Client ID",
+            value=self.client_id,
+            border_color=self.primary_color
+        )
+        
+        self.channel_field = ft.TextField(
+            label="Twitch Channel",
+            value=self.channel,
+            border_color=self.primary_color
+        )
+        
+        self.prefix_field = ft.TextField(
+            label="Command Prefix",
+            value=self.prefix,
+            width=120,
+            border_color=self.primary_color
+        )
+        
+        self.web_host_field = ft.TextField(
+            label="Web Host",
+            value=self.web_host,
+            width=150,
+            border_color=self.primary_color
+        )
+        
+        self.web_port_field = ft.TextField(
+            label="Web Port",
+            value=self.web_port,
+            width=100,
+            border_color=self.primary_color
+        )
 
-    loop = qasync.QEventLoop(app)
-    asyncio.set_event_loop(loop)
-    with loop:
-        loop.run_forever()
+        config_card = ft.Card(
+            content=ft.Container(
+                content=ft.Column([
+                    ft.Text("?? Configuration", size=20, weight=ft.FontWeight.BOLD, color=self.secondary_color),
+                    ft.Row([self.token_field, oauth_wizard_btn]),
+                    self.client_id_field,
+                    self.channel_field,
+                    ft.Row([self.prefix_field, self.web_host_field, self.web_port_field]),
+                ], spacing=15),
+                padding=20
+            ),
+            elevation=4
+        )
 
-if __name__ == '__main__':
-    main()
+        # Control buttons
+        self.start_btn = ft.ElevatedButton(
+            "?? Start Bot",
+            icon=ft.icons.PLAY_ARROW,
+            on_click=self.start_bot,
+            bgcolor=self.success_color,
+            color=ft.colors.WHITE,
+            style=ft.ButtonStyle(shape=ft.RoundedRectangleBorder(radius=8))
+        )
+        
+        self.stop_btn = ft.ElevatedButton(
+            "?? Stop Bot",
+            icon=ft.icons.STOP,
+            on_click=self.stop_bot,
+            bgcolor=self.error_color,
+            color=ft.colors.WHITE,
+            disabled=True,
+            style=ft.ButtonStyle(shape=ft.RoundedRectangleBorder(radius=8))
+        )
+        
+        leaderboard_btn = ft.ElevatedButton(
+            "?? Open Leaderboard",
+            icon=ft.icons.LEADERBOARD,
+            on_click=self.open_leaderboard,
+            bgcolor=self.primary_color,
+            color=ft.colors.WHITE,
+            style=ft.ButtonStyle(shape=ft.RoundedRectangleBorder(radius=8))
+        )
+
+        control_row = ft.Row([
+            self.start_btn,
+            self.stop_btn,
+            leaderboard_btn
+        ], alignment=ft.MainAxisAlignment.CENTER, spacing=20)
+
+        # Status indicator
+        self.status_text = ft.Text("Ready", size=16, color=self.secondary_color)
+        self.status_icon = ft.Icon(ft.icons.RADIO_BUTTON_UNCHECKED, color=ft.colors.GREY)
+        
+        status_row = ft.Row([
+            self.status_icon,
+            ft.Text("Status: ", weight=ft.FontWeight.BOLD),
+            self.status_text
+        ], alignment=ft.MainAxisAlignment.CENTER)
+
+        # Tabs for different sections
+        self.tabs = ft.Tabs(
+            selected_index=0,
+            animation_duration=300,
+            tabs=[
+                ft.Tab(
+                    text="?? Dashboard",
+                    content=ft.Container(
+                        content=ft.Column([
+                            config_card,
+                            ft.Container(height=20),
+                            control_row,
+                            ft.Container(height=10),
+                            status_row,
+                        ]),
+                        padding=20
+                    )
+                ),
+                ft.Tab(
+                    text="?? Logs",
+                    content=self.build_logs_tab()
+                ),
+                ft.Tab(
+                    text="?? Users",
+                    content=self.build_users_tab()
+                ),
+                ft.Tab(
+                    text="?? Games",
+                    content=self.build_games_tab()
+                )
+            ],
+            expand=1
+        )
+
+        # Main layout
+        self.page.add(
+            ft.Column([
+                header,
+                self.tabs
+            ], expand=True)
+        )
+
+    def build_logs_tab(self):
+        self.log_view = ft.ListView(
+            expand=True,
+            spacing=5,
+            padding=10,
+            auto_scroll=True
+        )
+        
+        clear_logs_btn = ft.ElevatedButton(
+            "??? Clear Logs",
+            icon=ft.icons.CLEAR_ALL,
+            on_click=self.clear_logs,
+            bgcolor=self.error_color,
+            color=ft.colors.WHITE
+        )
+
+        return ft.Container(
+            content=ft.Column([
+                ft.Row([
+                    ft.Text("?? Application Logs", size=20, weight=ft.FontWeight.BOLD, color=self.secondary_color),
+                    clear_logs_btn
+                ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
+                ft.Container(
+                    content=self.log_view,
+                    bgcolor=ft.colors.BLACK,
+                    border_radius=8,
+                    padding=10,
+                    expand=True
+                )
+            ]),
+            padding=20
+        )
+
+    def build_users_tab(self):
+        user_info = ft.Container(
+            content=ft.Column([
+                ft.Text("?? User Management", size=20, weight=ft.FontWeight.BOLD, color=self.secondary_color),
+                ft.Text("Manage viewer data, XP, tokens, and permissions", size=14, color=ft.colors.GREY_700),
+                ft.Container(height=20),
+                
+                ft.Row([
+                    ft.ElevatedButton(
+                        "?? View All Users",
+                        icon=ft.icons.PEOPLE,
+                        bgcolor=self.primary_color,
+                        color=ft.colors.WHITE
+                    ),
+                    ft.ElevatedButton(
+                        "?? Search User",
+                        icon=ft.icons.SEARCH,
+                        bgcolor=self.secondary_color,
+                        color=ft.colors.WHITE
+                    ),
+                    ft.ElevatedButton(
+                        "?? Export Data",
+                        icon=ft.icons.DOWNLOAD,
+                        bgcolor=self.success_color,
+                        color=ft.colors.WHITE
+                    )
+                ], wrap=True, spacing=10),
+                
+                ft.Container(height=30),
+                
+                # Stats cards
+                ft.Row([
+                    self.create_stat_card("Total Users", "Loading...", ft.icons.PEOPLE, self.primary_color),
+                    self.create_stat_card("Active Today", "Loading...", ft.icons.TRENDING_UP, self.success_color),
+                    self.create_stat_card("Top XP", "Loading...", ft.icons.STAR, self.secondary_color)
+                ], wrap=True, spacing=20)
+            ]),
+            padding=20
+        )
+        
+        return user_info
+
+    def build_games_tab(self):
+        return ft.Container(
+            content=ft.Column([
+                ft.Text("?? Game Controls", size=20, weight=ft.FontWeight.BOLD, color=self.secondary_color),
+                ft.Text("Control bot games and seasonal events", size=14, color=ft.colors.GREY_700),
+                ft.Container(height=20),
+                
+                # Game control cards
+                ft.Row([
+                    self.create_game_card("Guess the Ingredient", "Start a guessing game", ft.icons.QUIZ),
+                    self.create_game_card("Oven Timer Trivia", "Baking knowledge quiz", ft.icons.TIMER),
+                    self.create_game_card("Seasonal Event", "Theme-based mini-game", ft.icons.CELEBRATION)
+                ], wrap=True, spacing=20),
+                
+                ft.Container(height=30),
+                
+                # Season controls
+                ft.Card(
+                    content=ft.Container(
+                        content=ft.Column([
+                            ft.Text("?? Seasonal Settings", size=16, weight=ft.FontWeight.BOLD),
+                            ft.Row([
+                                ft.Dropdown(
+                                    label="Current Season",
+                                    options=[
+                                        ft.dropdown.Option("none", "No Season"),
+                                        ft.dropdown.Option("halloween", "?? Halloween"),
+                                        ft.dropdown.Option("holiday", "?? Holiday"),
+                                        ft.dropdown.Option("summer", "?? Summer"),
+                                        ft.dropdown.Option("spring", "?? Spring")
+                                    ],
+                                    value="none",
+                                    width=200
+                                ),
+                                ft.ElevatedButton(
+                                    "Apply Season",
+                                    bgcolor=self.primary_color,
+                                    color=ft.colors.WHITE
+                                )
+                            ])
+                        ]),
+                        padding=20
+                    )
+                )
+            ]),
+            padding=20
+        )
+
+    def create_stat_card(self, title, value, icon, color):
+        return ft.Card(
+            content=ft.Container(
+                content=ft.Column([
+                    ft.Icon(icon, size=32, color=color),
+                    ft.Text(title, size=14, text_align=ft.TextAlign.CENTER),
+                    ft.Text(value, size=20, weight=ft.FontWeight.BOLD, text_align=ft.TextAlign.CENTER, color=color)
+                ], horizontal_alignment=ft.CrossAxisAlignment.CENTER, spacing=5),
+                padding=20,
+                width=150,
+                height=120
+            ),
+            elevation=3
+        )
+
+    def create_game_card(self, title, description, icon):
+        return ft.Card(
+            content=ft.Container(
+                content=ft.Column([
+                    ft.Icon(icon, size=40, color=self.primary_color),
+                    ft.Text(title, size=16, weight=ft.FontWeight.BOLD, text_align=ft.TextAlign.CENTER),
+                    ft.Text(description, size=12, text_align=ft.TextAlign.CENTER, color=ft.colors.GREY_700),
+                    ft.ElevatedButton(
+                        "Start Game",
+                        bgcolor=self.primary_color,
+                        color=ft.colors.WHITE,
+                        width=120
+                    )
+                ], horizontal_alignment=ft.CrossAxisAlignment.CENTER, spacing=8),
+                padding=20,
+                width=200,
+                height=180
+            ),
+            elevation=3
+        )
+
+    def show_oauth_wizard(self, e):
+        def close_wizard(e):
+            wizard_modal.open = False
+            self.page.update()
+
+        def next_step(e):
+            current = wizard_tabs.selected_index
+            if current < 3:
+                wizard_tabs.selected_index = current + 1
+                self.page.update()
+
+        def prev_step(e):
+            current = wizard_tabs.selected_index
+            if current > 0:
+                wizard_tabs.selected_index = current - 1
+                self.page.update()
+
+        def generate_oauth_url(e):
+            if not client_id_input.value:
+                self.show_snackbar("Please enter Client ID first!", self.error_color)
+                return
+            
+            url = f"https://id.twitch.tv/oauth2/authorize?client_id={client_id_input.value}&redirect_uri=https://localhost&response_type=token&scope=chat:read+chat:edit&force_verify=true"
+            oauth_url_field.value = url
+            self.page.update()
+
+        def open_browser(e):
+            if oauth_url_field.value:
+                webbrowser.open(oauth_url_field.value)
+
+        def copy_url(e):
+            if oauth_url_field.value:
+                self.page.set_clipboard(oauth_url_field.value)
+                self.show_snackbar("URL copied to clipboard!", self.success_color)
+
+        def save_token(e):
+            token = token_input.value.strip()
+            if not token:
+                self.show_snackbar("Please enter the access token!", self.error_color)
+                return
+            
+            final_token = f"oauth:{token}" if not token.startswith("oauth:") else token
+            self.token_field.value = final_token
+            self.page.update()
+            self.show_snackbar("Token saved successfully!", self.success_color)
+            close_wizard(e)
+
+        # Input fields
+        client_id_input = ft.TextField(label="Client ID", width=400, border_color=self.primary_color)
+        oauth_url_field = ft.TextField(label="OAuth URL", width=500, read_only=True, border_color=self.primary_color)
+        token_input = ft.TextField(label="Access Token", password=True, width=400, border_color=self.primary_color)
+
+        wizard_tabs = ft.Tabs(
+            selected_index=0,
+            animation_duration=300,
+            tabs=[
+                ft.Tab(
+                    text="1?? Create App",
+                    content=ft.Container(
+                        content=ft.Column([
+                            ft.Text("Create Twitch Application", size=18, weight=ft.FontWeight.BOLD),
+                            ft.Text("1. Go to Twitch Developer Console"),
+                            ft.Text("2. Click 'Register Your Application'"),
+                            ft.Text("3. Fill: Name, OAuth Redirect URLs: https://localhost"),
+                            ft.Text("4. Category: Chat Bot, then Create"),
+                            ft.Container(height=20),
+                            ft.ElevatedButton(
+                                "?? Open Developer Console",
+                                on_click=lambda e: webbrowser.open("https://dev.twitch.tv/console/apps"),
+                                bgcolor=self.primary_color,
+                                color=ft.colors.WHITE
+                            )
+                        ], spacing=10),
+                        padding=20
+                    )
+                ),
+                ft.Tab(
+                    text="2?? Client ID",
+                    content=ft.Container(
+                        content=ft.Column([
+                            ft.Text("Enter Client ID", size=18, weight=ft.FontWeight.BOLD),
+                            ft.Text("Copy the Client ID from your Twitch application:"),
+                            ft.Container(height=10),
+                            client_id_input
+                        ], spacing=10),
+                        padding=20
+                    )
+                ),
+                ft.Tab(
+                    text="3?? Authorize",
+                    content=ft.Container(
+                        content=ft.Column([
+                            ft.Text("Get Authorization", size=18, weight=ft.FontWeight.BOLD),
+                            ft.Text("1. Click 'Generate URL', then 'Open in Browser'"),
+                            ft.Text("2. Sign in with your BOT account"),
+                            ft.Text("3. Click 'Authorize'"),
+                            ft.Text("4. Copy access_token from URL (after #access_token=)"),
+                            ft.Container(height=10),
+                            ft.Row([
+                                ft.ElevatedButton("Generate URL", on_click=generate_oauth_url),
+                                ft.ElevatedButton("Open Browser", on_click=open_browser),
+                                ft.ElevatedButton("Copy URL", on_click=copy_url)
+                            ]),
+                            oauth_url_field
+                        ], spacing=10),
+                        padding=20
+                    )
+                ),
+                ft.Tab(
+                    text="4?? Token",
+                    content=ft.Container(
+                        content=ft.Column([
+                            ft.Text("Save Access Token", size=18, weight=ft.FontWeight.BOLD),
+                            ft.Text("Paste the access_token from the URL:"),
+                            ft.Container(height=10),
+                            token_input,
+                            ft.Container(height=20),
+                            ft.ElevatedButton(
+                                "?? Save Token",
+                                on_click=save_token,
+                                bgcolor=self.success_color,
+                                color=ft.colors.WHITE
+                            )
+                        ], spacing=10),
+                        padding=20
+                    )
+                )
+            ]
+        )
+
+        wizard_modal = ft.AlertDialog(
+            modal=True,
+            title=ft.Text("?? OAuth Setup Wizard"),
+            content=ft.Container(
+                content=wizard_tabs,
+                width=600,
+                height=400
+            ),
+            actions=[
+                ft.TextButton("? Close", on_click=close_wizard),
+            ],
+            actions_alignment=ft.MainAxisAlignment.END
+        )
+
+        self.page.dialog = wizard_modal
+        wizard_modal.open = True
+        self.page.update()
+
+    def show_snackbar(self, message, color=None):
+        snackbar = ft.SnackBar(
+            content=ft.Text(message, color=ft.colors.WHITE),
+            bgcolor=color or self.primary_color
+        )
+        self.page.snack_bar = snackbar
+        snackbar.open = True
+        self.page.update()
+
+    def start_bot(self, e):
+        self.save_env()
+        self.update_status("Starting...", ft.icons.HOURGLASS_EMPTY, ft.colors.ORANGE)
+        self.start_btn.disabled = True
+        self.page.update()
+        
+        success = self.bot_manager.start_bot(self.bot_callback)
+        if not success:
+            self.update_status("Failed to start", ft.icons.ERROR, self.error_color)
+            self.start_btn.disabled = False
+            self.page.update()
+
+    def stop_bot(self, e):
+        self.update_status("Stopping...", ft.icons.HOURGLASS_EMPTY, ft.colors.ORANGE)
+        self.stop_btn.disabled = True
+        self.page.update()
+        self.bot_manager.stop_bot(self.bot_callback)
+
+    def bot_callback(self, status, error=None):
+        if status == 'started':
+            self.update_status("Bot Running", ft.icons.CHECK_CIRCLE, self.success_color)
+            self.start_btn.disabled = True
+            self.stop_btn.disabled = False
+        elif status == 'stopped':
+            self.update_status("Bot Stopped", ft.icons.RADIO_BUTTON_UNCHECKED, ft.colors.GREY)
+            self.start_btn.disabled = False
+            self.stop_btn.disabled = True
+        elif status == 'error':
+            self.update_status(f"Error: {error}", ft.icons.ERROR, self.error_color)
+            self.start_btn.disabled = False
+            self.stop_btn.disabled = True
+        
+        self.page.update()
+
+    def update_status(self, text, icon, color):
+        self.status_text.value = text
+        self.status_text.color = color
+        self.status_icon.name = icon
+        self.status_icon.color = color
+
+    def open_leaderboard(self, e):
+        host = self.web_host_field.value
+        port = self.web_port_field.value
+        webbrowser.open(f"http://{host}:{port}/leaderboard")
+
+    def clear_logs(self, e):
+        self.log_view.controls.clear()
+        self.page.update()
+
+    def add_log(self, message):
+        timestamp = datetime.now().strftime("%H:%M:%S")
+        log_entry = ft.Container(
+            content=ft.Text(
+                f"[{timestamp}] {message}",
+                color=ft.colors.GREEN_400,
+                font_family="Courier"
+            ),
+            padding=ft.padding.symmetric(vertical=2)
+        )
+        self.log_view.controls.append(log_entry)
+        if len(self.log_view.controls) > 100:  # Keep only last 100 entries
+            self.log_view.controls.pop(0)
+        self.page.update()
+
+def main(page: ft.Page):
+    BakeBotApp(page)
+
+if __name__ == "__main__":
+    ft.app(target=main)

@@ -1,12 +1,12 @@
 # BakeBot
 
-A Twitch baking-themed chat bot with cozy mini-games, redemptions, a tiny leaderboard website, and a simple GUI. Built with Python, twitchio, aiosqlite, aiohttp, and tkinter.
+A Twitch baking-themed chat bot with cozy mini-games, redemptions, a tiny leaderboard website, and a beautiful modern GUI. Built with Python, twitchio, aiosqlite, aiohttp, and Flet.
 
 ---
 
 ## Features
-- GUI-first setup (no external dependencies)
-- Step-by-step OAuth token setup wizard
+- **Modern Flutter-based GUI** with beautiful baking-themed design
+- Step-by-step OAuth token setup wizard with smooth animations
 - Persistent SQLite storage (XP, tokens, wins, redemptions, chat logs)
 - User management interface for streamers
 - Baking games: Guess the Ingredient, Oven Timer Trivia, Seasonal Event
@@ -19,50 +19,47 @@ A Twitch baking-themed chat bot with cozy mini-games, redemptions, a tiny leader
 ---
 
 ## Requirements
-- Python 3.10+ (with tkinter included)
+- Python 3.10+
 - A Twitch account for your bot
 - Optional: Twitch Developer Application (for OAuth and EventSub)
 
 ---
 
-## Quick Start (GUI)
+## Quick Start (Modern GUI)
 1. Install dependencies
    ```bash
    pip install -r requirements.txt
    ```
-2. Launch the GUI
+2. Launch the beautiful GUI
    ```bash
    python -m bot.gui
    ```
 3. In the GUI:
-   - Click "Setup OAuth" and follow the 4-step wizard
-   - Enter your channel name
-   - Click "Start Bot"
-4. Open the leaderboard
-   - Click "Open Leaderboard" or visit http://localhost:8080/leaderboard
+   - Click "Setup OAuth" and follow the animated 4-step wizard
+   - Enter your channel name in the sleek input field
+   - Click the "?? Start Bot" button
+4. Open the styled leaderboard
+   - Click "?? Open Leaderboard" or visit http://localhost:8080/leaderboard
 
 ---
 
-## OAuth Token Setup (Built-in Wizard)
+## Beautiful Modern Interface
 
-The GUI includes a complete 4-step setup wizard:
+**?? Design Features:**
+- Flutter-rendered GUI with smooth animations
+- Baking-themed color scheme (warm browns, creams, golds)
+- Card-based layout with elevation and shadows  
+- Modern icons and typography
+- Responsive tabs: Dashboard, Logs, Users, Games
+- Real-time status indicators with color coding
+- Snackbar notifications for user feedback
 
-**Step 1:** Create Twitch Application
-- Opens https://dev.twitch.tv/console/apps for you
-- Guides you through app creation
-
-**Step 2:** Enter Client ID  
-- Paste your Twitch app's Client ID
-
-**Step 3:** Get Authorization
-- Generates OAuth URL automatically
-- Copy or open in browser
-- Handles the redirect for you
-
-**Step 4:** Enter Token
-- Paste the access_token from the URL
-- Automatically adds oauth: prefix
-- Saves securely to .env file
+**?? OAuth Wizard:**
+- 4-step tabbed interface with progress indicators
+- Integrated browser launching
+- Clipboard integration for easy copying
+- Form validation with helpful error messages
+- Automatic token formatting and saving
 
 ---
 
@@ -82,25 +79,37 @@ Data is stored in `bot_data.sqlite3` and automatically loads on startup.
 
 ## User Management
 
-Built-in user management interface:
-- View all users sorted by XP
+Built-in user management interface with modern cards:
+- View all users with stats cards showing totals
 - Edit XP, tokens, wins for any user
-- Add notes to users
-- Ban/unban users
-- View chat message history
-- Export/import user data
+- Add notes to users with rich text
+- Ban/unban users with visual indicators
+- View chat message history in scrollable lists
+- Export/import user data with progress indicators
 
-Access via the "User Management" tab in the GUI.
+Access via the "?? Users" tab in the GUI.
+
+---
+
+## Game Controls
+
+Interactive game control panel:
+- **Game Cards:** Visual cards for each game type
+- **One-click start:** Launch games directly from GUI
+- **Season Controls:** Dropdown to change seasonal themes
+- **Live Status:** See active games and their progress
+
+Access via the "?? Games" tab.
 
 ---
 
 ## Configuration
 
-All settings auto-save to .env:
+Beautifully organized settings panel with auto-save:
 
 | Key | Description | Default |
 |-----|-------------|---------|
-| TWITCH_TOKEN | OAuth token (starts with oauth:) | - |
+| TWITCH_TOKEN | OAuth token (secured input field) | - |
 | TWITCH_CLIENT_ID | For OAuth wizard | - |
 | TWITCH_CHANNEL | Your channel login name | - |
 | PREFIX | Command prefix | ! |
@@ -175,16 +184,17 @@ Enable channel point rewards to trigger bot effects:
 - **Start event:** !seasonal
 - **Disable:** !setseason off
 
-Seasons change ingredient pools and theming.
+Seasons change ingredient pools and theming. Control via GUI dropdown.
 
 ---
 
 ## Logs and Monitoring
-- **GUI Log Panel:** Real-time log viewing
+- **Colorized Log Panel:** Real-time log viewing with syntax highlighting
+- **Auto-scroll:** Latest logs always visible
+- **Log Management:** Clear logs button, limited history
 - **File Logging:** logs/bakebot.log with rotation
 - **Chat Logging:** All messages stored with timestamps
-- **User Activity:** Last seen tracking
-- **Debug Mode:** Set LOG_LEVEL=DEBUG for detailed logs
+- **User Activity:** Last seen tracking with visual indicators
 
 ---
 
@@ -194,11 +204,13 @@ Seasons change ingredient pools and theming.
 - **Web not loading:** Change WEB_PORT if 8080 is busy
 - **OAuth issues:** Follow wizard exactly, ensure https://localhost redirect URI
 - **Data not saving:** Check file permissions on bot_data.sqlite3
+- **GUI not loading:** Ensure Flet is installed: `pip install flet>=0.24.1`
 
 ---
 
 ## Security
 - Tokens stored securely in .env (not committed to git)
+- Password-masked input fields in GUI
 - User data encrypted at rest in SQLite
 - EventSub signature verification
 - Rate limiting prevents abuse
