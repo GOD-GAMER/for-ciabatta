@@ -6,5 +6,3 @@ qrcode[pil]>=7.4.2
 uvloop>=0.19.0; sys_platform == 'linux' or sys_platform == 'darwin'
 humanize>=4.9.0
 rapidfuzz>=3.9.7
-PySide6>=6.7.2
-qasync>=0.27.1

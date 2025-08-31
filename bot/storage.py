@@ -11,7 +11,9 @@ CREATE TABLE IF NOT EXISTS users (
     xp INTEGER NOT NULL DEFAULT 0,
     tokens INTEGER NOT NULL DEFAULT 0,
     wins INTEGER NOT NULL DEFAULT 0,
-    last_seen INTEGER NOT NULL DEFAULT 0
+    last_seen INTEGER NOT NULL DEFAULT 0,
+    notes TEXT DEFAULT '',
+    is_banned INTEGER DEFAULT 0
 );
 
 CREATE TABLE IF NOT EXISTS redemptions (
@@ -26,6 +28,14 @@ CREATE TABLE IF NOT EXISTS redemptions (
 CREATE TABLE IF NOT EXISTS metadata (
     key TEXT PRIMARY KEY,
     value TEXT
+);
+
+CREATE TABLE IF NOT EXISTS chat_logs (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    username TEXT NOT NULL,
+    message TEXT NOT NULL,
+    timestamp INTEGER NOT NULL,
+    channel TEXT NOT NULL
 );
 '''
 
@@ -45,40 +55,43 @@ class Storage:
             async with aiosqlite.connect(self.db_path) as db:
                 await db.execute('INSERT OR IGNORE INTO users(username) VALUES (?)', (username,))
                 await db.commit()
-                async with db.execute('SELECT username, xp, tokens, wins, last_seen FROM users WHERE username = ?', (username,)) as cur:
+                async with db.execute('SELECT username, xp, tokens, wins, last_seen, notes, is_banned FROM users WHERE username = ?', (username,)) as cur:
                     row = await cur.fetchone()
                     if not row:
                         raise RuntimeError('Failed to load or create user')
                     return {
-                        'username': row[0], 'xp': row[1], 'tokens': row[2], 'wins': row[3], 'last_seen': row[4]
+                        'username': row[0], 'xp': row[1], 'tokens': row[2], 'wins': row[3], 
+                        'last_seen': row[4], 'notes': row[5] or '', 'is_banned': bool(row[6])
                     }
 
-    async def add_xp(self, username: str, amount: int):
+    async def update_user(self, username: str, **fields):
         username = username.lower()
+        if not fields:
+            return
+        set_clause = ', '.join(f'{k} = ?' for k in fields.keys())
+        values = list(fields.values()) + [username]
         async with self._lock:
             async with aiosqlite.connect(self.db_path) as db:
-                await db.execute('UPDATE users SET xp = xp + ? WHERE username = ?', (amount, username))
+                await db.execute(f'UPDATE users SET {set_clause} WHERE username = ?', values)
                 await db.commit()
+
+    async def add_xp(self, username: str, amount: int):
+        await self.update_user(username, xp=f'xp + {amount}')
 
     async def add_tokens(self, username: str, amount: int):
-        username = username.lower()
-        async with self._lock:
-            async with aiosqlite.connect(self.db_path) as db:
-                await db.execute('UPDATE users SET tokens = tokens + ? WHERE username = ?', (amount, username))
-                await db.commit()
+        await self.update_user(username, tokens=f'tokens + {amount}')
 
     async def add_win(self, username: str):
-        username = username.lower()
-        async with self._lock:
-            async with aiosqlite.connect(self.db_path) as db:
-                await db.execute('UPDATE users SET wins = wins + 1 WHERE username = ?', (username,))
-                await db.commit()
+        await self.update_user(username, wins='wins + 1')
 
     async def set_last_seen(self, username: str, ts: int):
-        username = username.lower()
+        await self.update_user(username, last_seen=ts)
+
+    async def log_chat_message(self, username: str, message: str, channel: str):
         async with self._lock:
             async with aiosqlite.connect(self.db_path) as db:
-                await db.execute('UPDATE users SET last_seen = ? WHERE username = ?', (ts, username))
+                await db.execute('INSERT INTO chat_logs(username, message, timestamp, channel) VALUES (?,?,?,?)', 
+                                (username.lower(), message, int(asyncio.get_event_loop().time()), channel.lower()))
                 await db.commit()
 
     async def record_redemption(self, username: str, reward: str, cost: int, created_at: int):
@@ -94,13 +107,21 @@ class Storage:
                 rows = await cur.fetchall()
                 return [{'username': r[0], 'xp': r[1], 'wins': r[2]} for r in rows]
 
+    async def get_all_users(self) -> List[Dict[str, Any]]:
+        async with aiosqlite.connect(self.db_path) as db:
+            async with db.execute('SELECT username, xp, tokens, wins, last_seen, notes, is_banned FROM users ORDER BY xp DESC') as cur:
+                rows = await cur.fetchall()
+                return [{'username': r[0], 'xp': r[1], 'tokens': r[2], 'wins': r[3], 
+                        'last_seen': r[4], 'notes': r[5] or '', 'is_banned': bool(r[6])} for r in rows]
+
     async def get_user(self, username: str) -> Optional[Dict[str, Any]]:
         username = username.lower()
         async with aiosqlite.connect(self.db_path) as db:
-            async with db.execute('SELECT username, xp, tokens, wins, last_seen FROM users WHERE username = ?', (username,)) as cur:
+            async with db.execute('SELECT username, xp, tokens, wins, last_seen, notes, is_banned FROM users WHERE username = ?', (username,)) as cur:
                 row = await cur.fetchone()
                 if row:
-                    return {'username': row[0], 'xp': row[1], 'tokens': row[2], 'wins': row[3], 'last_seen': row[4]}
+                    return {'username': row[0], 'xp': row[1], 'tokens': row[2], 'wins': row[3], 
+                           'last_seen': row[4], 'notes': row[5] or '', 'is_banned': bool(row[6])}
                 return None
 
     async def get_metadata(self, key: str) -> Optional[str]:
