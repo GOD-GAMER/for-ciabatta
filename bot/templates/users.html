@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BakeBot - Users</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh; color: #333;
+        }
+        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+        .header {
+            background: linear-gradient(135deg, #F5DEB3 0%, #D4A574 100%);
+            padding: 20px; border-radius: 12px; margin-bottom: 20px;
+        }
+        .header h1 { color: #8B4513; text-align: center; font-size: 2.5em; margin-bottom: 10px; }
+        .nav { display: flex; justify-content: center; gap: 20px; flex-wrap: wrap; }
+        .nav a {
+            background: #8B4513; color: white; padding: 10px 20px;
+            text-decoration: none; border-radius: 6px; transition: background 0.3s;
+        }
+        .nav a:hover, .nav a.active { background: #A0522D; }
+        .card { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .card h2 { color: #8B4513; margin-bottom: 15px; font-size: 1.5em; }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin: 20px 0; }
+        .stat-card { background: #f8f9fa; padding: 20px; border-radius: 8px; text-align: center; border-left: 4px solid #D4A574; }
+        .stat-number { font-size: 2em; font-weight: bold; color: #8B4513; }
+        .stat-label { color: #666; margin-top: 5px; }
+        .btn { background: #4CAF50; color: white; padding: 12px 24px; border: none; border-radius: 6px; cursor: pointer; margin-right: 10px; }
+        .btn.primary { background: #D4A574; }
+        .btn.secondary { background: #8B4513; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>BakeBot Manager</h1>
+            <nav class="nav">
+                <a href="/">Dashboard</a>
+                <a href="/logs">Logs</a>
+                <a href="/users" class="active">Users</a>
+                <a href="/games">Games</a>
+                <a href="/shop">Shop</a>
+                <a href="/oauth-wizard">OAuth Wizard</a>
+            </nav>
+        </div>
+        
+        <div class="card">
+            <h2>User Management</h2>
+            <p style="margin-bottom: 20px; color: #666;">Manage viewer data, XP, tokens, and permissions</p>
+            
+            <div style="margin-bottom: 20px;">
+                <button class="btn primary">View All Users</button>
+                <button class="btn secondary">Search User</button>
+                <button class="btn">Export Data</button>
+            </div>
+            
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-number">Loading...</div>
+                    <div class="stat-label">Total Users</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">Loading...</div>
+                    <div class="stat-label">Active Today</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">Loading...</div>
+                    <div class="stat-label">Top XP</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <h2>User List</h2>
+            <p style="color: #666;">User management features will be available when the bot is running and connected to your channel.</p>
+        </div>
+    </div>
+</body>
+</html>

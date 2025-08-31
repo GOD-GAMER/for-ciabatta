@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BakeBot - Dashboard</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh; color: #333;
+        }
+        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+        .header {
+            background: linear-gradient(135deg, #F5DEB3 0%, #D4A574 100%);
+            padding: 20px; border-radius: 12px; margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .header h1 { color: #8B4513; text-align: center; font-size: 2.5em; margin-bottom: 10px; }
+        .nav { display: flex; justify-content: center; gap: 20px; flex-wrap: wrap; }
+        .nav a {
+            background: #8B4513; color: white; padding: 10px 20px;
+            text-decoration: none; border-radius: 6px; transition: background 0.3s;
+        }
+        .nav a:hover, .nav a.active { background: #A0522D; }
+        .card {
+            background: white; border-radius: 12px; padding: 20px;
+            margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .card h2 { color: #8B4513; margin-bottom: 15px; font-size: 1.5em; }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: bold; color: #8B4513; }
+        .form-group input {
+            width: 100%; padding: 10px; border: 2px solid #D4A574;
+            border-radius: 6px; font-size: 16px;
+        }
+        .btn {
+            background: #4CAF50; color: white; padding: 12px 24px; border: none;
+            border-radius: 6px; font-size: 16px; cursor: pointer; margin-right: 10px;
+        }
+        .btn.primary { background: #D4A574; }
+        .status-indicator {
+            text-align: center; padding: 15px; margin: 20px 0;
+            border-radius: 8px; font-weight: bold;
+        }
+        .status-stopped { background: #e0e0e0; color: #666; }
+        .status-running { background: #d4edda; color: #155724; }
+        .status-error { background: #f8d7da; color: #721c24; }
+        .message { padding: 10px; margin: 10px 0; border-radius: 6px; display: none; }
+        .message.success { background: #d4edda; color: #155724; }
+        .message.error { background: #f8d7da; color: #721c24; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>BakeBot Manager</h1>
+            <nav class="nav">
+                <a href="/" class="active">Dashboard</a>
+                <a href="/logs">Logs</a>
+                <a href="/users">Users</a>
+                <a href="/games">Games</a>
+                <a href="/shop">Shop</a>
+                <a href="/oauth-wizard">OAuth Wizard</a>
+            </nav>
+        </div>
+        
+        <div class="card">
+            <h2>Configuration</h2>
+            <form id="config-form">
+                <div class="form-group">
+                    <label for="token">Twitch OAuth Token:</label>
+                    <input type="password" id="token" name="TWITCH_TOKEN" value="{{ env_vars.TWITCH_TOKEN }}">
+                </div>
+                <div class="form-group">
+                    <label for="client_id">Twitch Client ID:</label>
+                    <input type="text" id="client_id" name="TWITCH_CLIENT_ID" value="{{ env_vars.TWITCH_CLIENT_ID }}">
+                </div>
+                <div class="form-group">
+                    <label for="channel">Twitch Channel:</label>
+                    <input type="text" id="channel" name="TWITCH_CHANNEL" value="{{ env_vars.TWITCH_CHANNEL }}">
+                </div>
+                <button type="submit" class="btn primary">Save Configuration</button>
+            </form>
+        </div>
+        
+        <div class="card">
+            <h2>Bot Control</h2>
+            <div style="text-align: center;">
+                <button id="start-btn" class="btn">Start Bot</button>
+                <button id="stop-btn" class="btn" style="background: #F44336;" disabled>Stop Bot</button>
+                <button id="leaderboard-btn" class="btn primary">Open Leaderboard</button>
+            </div>
+        </div>
+        
+        <div id="status" class="status-indicator status-{{ status }}">
+            <span>Bot {{ status.title() }}</span>
+        </div>
+        
+        <div id="message" class="message"></div>
+    </div>
+    
+    <script>
+        const socket = io();
+        const startBtn = document.getElementById('start-btn');
+        const stopBtn = document.getElementById('stop-btn');
+        const statusEl = document.getElementById('status');
+        const messageEl = document.getElementById('message');
+        
+        socket.on('status_update', function(data) {
+            statusEl.className = `status-indicator status-${data.status}`;
+            statusEl.innerHTML = `<span>${data.message}</span>`;
+            startBtn.disabled = (data.status === 'running');
+            stopBtn.disabled = (data.status === 'stopped');
+        });
+        
+        function showMessage(text, type = 'success') {
+            messageEl.textContent = text;
+            messageEl.className = `message ${type}`;
+            messageEl.style.display = 'block';
+            setTimeout(() => messageEl.style.display = 'none', 5000);
+        }
+        
+        document.getElementById('config-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const data = Object.fromEntries(formData.entries());
+            try {
+                const response = await fetch('/api/save-config', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                const result = await response.json();
+                showMessage(result.message, result.success ? 'success' : 'error');
+            } catch (error) {
+                showMessage('Error: ' + error.message, 'error');
+            }
+        });
+        
+        startBtn.addEventListener('click', async function() {
+            const response = await fetch('/api/start-bot', { method: 'POST' });
+            const result = await response.json();
+            showMessage(result.message, result.success ? 'success' : 'error');
+        });
+        
+        stopBtn.addEventListener('click', async function() {
+            const response = await fetch('/api/stop-bot', { method: 'POST' });
+            const result = await response.json();
+            showMessage(result.message, result.success ? 'success' : 'error');
+        });
+        
+        document.getElementById('leaderboard-btn').addEventListener('click', async function() {
+            const response = await fetch('/api/open-leaderboard', { method: 'POST' });
+            const result = await response.json();
+            showMessage(result.message, result.success ? 'success' : 'error');
+        });
+    </script>
+</body>
+</html>

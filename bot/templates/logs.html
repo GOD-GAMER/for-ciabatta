@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BakeBot - Logs</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh; color: #333;
+        }
+        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+        .header {
+            background: linear-gradient(135deg, #F5DEB3 0%, #D4A574 100%);
+            padding: 20px; border-radius: 12px; margin-bottom: 20px;
+        }
+        .header h1 { color: #8B4513; text-align: center; font-size: 2.5em; margin-bottom: 10px; }
+        .nav { display: flex; justify-content: center; gap: 20px; flex-wrap: wrap; }
+        .nav a {
+            background: #8B4513; color: white; padding: 10px 20px;
+            text-decoration: none; border-radius: 6px; transition: background 0.3s;
+        }
+        .nav a:hover, .nav a.active { background: #A0522D; }
+        .card { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .card h2 { color: #8B4513; margin-bottom: 15px; font-size: 1.5em; }
+        .logs-container {
+            background: #1e1e1e; color: #e0e0e0; padding: 20px; border-radius: 8px;
+            height: 400px; overflow-y: auto; font-family: 'Courier New', monospace;
+        }
+        .btn { background: #F44336; color: white; padding: 12px 24px; border: none; border-radius: 6px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>BakeBot Manager</h1>
+            <nav class="nav">
+                <a href="/">Dashboard</a>
+                <a href="/logs" class="active">Logs</a>
+                <a href="/users">Users</a>
+                <a href="/games">Games</a>
+                <a href="/shop">Shop</a>
+                <a href="/oauth-wizard">OAuth Wizard</a>
+            </nav>
+        </div>
+        
+        <div class="card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <h2>Application Logs</h2>
+                <button class="btn" onclick="clearLogs()">Clear Logs</button>
+            </div>
+            <div id="logs-container" class="logs-container">
+                <div>[System] Logs will appear here when the bot is running...</div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        function clearLogs() {
+            document.getElementById('logs-container').innerHTML = '<div>[System] Logs cleared</div>';
+        }
+    </script>
+</body>
+</html>
