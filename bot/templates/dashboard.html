@@ -9,48 +9,46 @@
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-            min-height: 100vh; color: #333;
+            background: linear-gradient(135deg, #f7f3ea 0%, #f0e2cd 100%);
+            min-height: 100vh; color: #40342b;
         }
         .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
         .header {
             background: linear-gradient(135deg, #F5DEB3 0%, #D4A574 100%);
-            padding: 20px; border-radius: 12px; margin-bottom: 20px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            padding: 20px; border-radius: 12px; margin-bottom: 16px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.08);
         }
-        .header h1 { color: #8B4513; text-align: center; font-size: 2.5em; margin-bottom: 10px; }
-        .nav { display: flex; justify-content: center; gap: 20px; flex-wrap: wrap; }
-        .nav a {
-            background: #8B4513; color: white; padding: 10px 20px;
-            text-decoration: none; border-radius: 6px; transition: background 0.3s;
-        }
+        .header h1 { color: #5c3b1e; text-align: center; font-size: 2.3em; margin-bottom: 8px; }
+        .nav { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; }
+        .nav a { background: #8B4513; color: white; padding: 8px 16px; text-decoration: none; border-radius: 6px; transition: background 0.25s; }
         .nav a:hover, .nav a.active { background: #A0522D; }
-        .card {
-            background: white; border-radius: 12px; padding: 20px;
-            margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        .tab-nav { display: flex; flex-wrap: wrap; gap: 6px; border-bottom: 2px solid #D4A574; margin: 10px 0 16px; }
+        .tab-btn { background: #f2e8d8; color: #5c3b1e; border: 1px solid #d4a574; padding: 10px 14px; border-radius: 8px 8px 0 0; cursor: pointer; }
+        .tab-btn.active { background: #D4A574; color: white; border-color: #c28b53; }
+        .card { background: #fffdf8; border-radius: 12px; padding: 18px; margin-bottom: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+        .card h2 { color: #5c3b1e; margin-bottom: 12px; font-size: 1.4em; }
+        .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+        .form-group { margin-bottom: 12px; }
+        .form-group label { display: block; margin-bottom: 6px; font-weight: 600; color: #6b4b2f; }
+        .form-group input, .form-group select {
+            width: 100%; padding: 10px; border: 2px solid #D4A574; border-radius: 8px; font-size: 15px; background: #fffaf1; color: #40342b;
         }
-        .card h2 { color: #8B4513; margin-bottom: 15px; font-size: 1.5em; }
-        .form-group { margin-bottom: 15px; }
-        .form-group label { display: block; margin-bottom: 5px; font-weight: bold; color: #8B4513; }
-        .form-group input {
-            width: 100%; padding: 10px; border: 2px solid #D4A574;
-            border-radius: 6px; font-size: 16px;
-        }
-        .btn {
-            background: #4CAF50; color: white; padding: 12px 24px; border: none;
-            border-radius: 6px; font-size: 16px; cursor: pointer; margin-right: 10px;
-        }
-        .btn.primary { background: #D4A574; }
-        .status-indicator {
-            text-align: center; padding: 15px; margin: 20px 0;
-            border-radius: 8px; font-weight: bold;
-        }
-        .status-stopped { background: #e0e0e0; color: #666; }
-        .status-running { background: #d4edda; color: #155724; }
-        .status-error { background: #f8d7da; color: #721c24; }
-        .message { padding: 10px; margin: 10px 0; border-radius: 6px; display: none; }
-        .message.success { background: #d4edda; color: #155724; }
-        .message.error { background: #f8d7da; color: #721c24; }
+        .btn { background: #8B4513; color: white; padding: 10px 16px; border: none; border-radius: 8px; cursor: pointer; }
+        .btn.secondary { background: #D4A574; }
+        .btn.danger { background: #C0392B; }
+        .small { font-size: 0.9em; color: #6b4b2f; opacity: 0.9; }
+        .status-indicator { text-align: center; padding: 12px; border-radius: 8px; font-weight: bold; }
+        .status-stopped { background: #eee2d3; color: #6b4b2f; }
+        .status-running { background: #e3f2d9; color: #2d6a2d; }
+        .status-error { background: #f9d6d1; color: #a13528; }
+        .message { padding: 10px; margin: 10px 0; border-radius: 8px; display: none; }
+        .message.success { background: #e3f2d9; color: #2d6a2d; }
+        .message.error { background: #f9d6d1; color: #a13528; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        code.inline { background:#f5e9d9; padding:2px 6px; border-radius:4px; }
+        ul { margin-left: 18px; }
+        ul li { margin: 6px 0; }
     </style>
 </head>
 <body>
@@ -66,97 +64,250 @@
                 <a href="/oauth-wizard">OAuth Wizard</a>
             </nav>
         </div>
-        
-        <div class="card">
-            <h2>Configuration</h2>
-            <form id="config-form">
-                <div class="form-group">
-                    <label for="token">Twitch OAuth Token:</label>
-                    <input type="password" id="token" name="TWITCH_TOKEN" value="{{ env_vars.TWITCH_TOKEN }}">
-                </div>
-                <div class="form-group">
-                    <label for="client_id">Twitch Client ID:</label>
-                    <input type="text" id="client_id" name="TWITCH_CLIENT_ID" value="{{ env_vars.TWITCH_CLIENT_ID }}">
-                </div>
-                <div class="form-group">
-                    <label for="channel">Twitch Channel:</label>
-                    <input type="text" id="channel" name="TWITCH_CHANNEL" value="{{ env_vars.TWITCH_CHANNEL }}">
-                </div>
-                <button type="submit" class="btn primary">Save Configuration</button>
-            </form>
+
+        <div class="tab-nav">
+            <button class="tab-btn active" data-tab="tab-control">Control</button>
+            <button class="tab-btn" data-tab="tab-config">Configuration</button>
+            <button class="tab-btn" data-tab="tab-network">Network</button>
+            <button class="tab-btn" data-tab="tab-eventsub">EventSub</button>
         </div>
-        
-        <div class="card">
-            <h2>Bot Control</h2>
-            <div style="text-align: center;">
-                <button id="start-btn" class="btn">Start Bot</button>
-                <button id="stop-btn" class="btn" style="background: #F44336;" disabled>Stop Bot</button>
-                <button id="leaderboard-btn" class="btn primary">Open Leaderboard</button>
+
+        <!-- Control Tab -->
+        <div id="tab-control" class="tab-content active">
+            <div class="card">
+                <h2>Bot Control</h2>
+                <div class="row" style="justify-content:center; gap:10px;">
+                    <button id="start-btn" class="btn">Start Bot</button>
+                    <button id="stop-btn" class="btn danger" disabled>Stop Bot</button>
+                    <button id="leaderboard-btn" class="btn secondary">Open Leaderboard</button>
+                </div>
+                <div id="status" class="status-indicator status-{{ status }}" style="margin-top:12px;">
+                    <span>Bot {{ status.title() }}</span>
+                </div>
+            </div>
+            <div class="card">
+                <h2>Quick Links</h2>
+                <div class="row" style="gap:8px;">
+                    <a class="btn secondary" href="/docs/SETUP.md" target="_blank">Setup Guide</a>
+                    <a class="btn secondary" href="/docs/PORT_FORWARDING.md" target="_blank">Port Forwarding</a>
+                    <a class="btn secondary" href="/docs/EVENTSUB.md" target="_blank">EventSub Guide</a>
+                </div>
             </div>
         </div>
-        
-        <div id="status" class="status-indicator status-{{ status }}">
-            <span>Bot {{ status.title() }}</span>
+
+        <!-- Configuration Tab -->
+        <div id="tab-config" class="tab-content">
+            <div class="card">
+                <h2>Configuration</h2>
+                <form id="config-form">
+                    <div class="form-group">
+                        <label for="token">Twitch OAuth Token</label>
+                        <div class="row" style="gap:8px; align-items:center;">
+                            <input type="password" id="token" name="TWITCH_TOKEN" value="{{ env_vars.TWITCH_TOKEN }}" placeholder="oauth:xxxx" style="flex:1;">
+                            <button type="button" class="btn secondary" id="btn-show-token">Show</button>
+                            <a class="btn" href="/oauth-wizard">Get Token</a>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="form-group" style="flex:1; min-width:180px;">
+                            <label for="client_id">Twitch Client ID</label>
+                            <input type="text" id="client_id" name="TWITCH_CLIENT_ID" value="{{ env_vars.TWITCH_CLIENT_ID }}">
+                        </div>
+                        <div class="form-group" style="flex:1; min-width:180px;">
+                            <label for="channel">Twitch Channel</label>
+                            <input type="text" id="channel" name="TWITCH_CHANNEL" value="{{ env_vars.TWITCH_CHANNEL }}" placeholder="yourchannel">
+                        </div>
+                        <div class="form-group" style="flex:1; min-width:120px;">
+                            <label for="prefix">Command Prefix</label>
+                            <input type="text" id="prefix" name="PREFIX" value="{{ env_vars.PREFIX }}">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="form-group" style="flex:1; min-width:160px;">
+                            <label for="web_host">Web Host</label>
+                            <input type="text" id="web_host" name="WEB_HOST" value="{{ env_vars.WEB_HOST }}" placeholder="0.0.0.0">
+                            <div class="small">Use 0.0.0.0 for LAN/public</div>
+                        </div>
+                        <div class="form-group" style="flex:1; min-width:120px;">
+                            <label for="web_port">Web Port</label>
+                            <input type="number" id="web_port" name="WEB_PORT" value="{{ env_vars.WEB_PORT }}" placeholder="8080">
+                        </div>
+                        <div class="form-group" style="flex:2; min-width:220px;">
+                            <label for="public_base_url">Public Base URL (optional)</label>
+                            <input type="text" id="public_base_url" name="PUBLIC_BASE_URL" value="{{ env_vars.PUBLIC_BASE_URL }}" placeholder="https://yourdomain.example">
+                            <div class="small">Used for public links in chat</div>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn">Save Configuration</button>
+                </form>
+            </div>
         </div>
-        
+
+        <!-- Network Tab -->
+        <div id="tab-network" class="tab-content">
+            <div class="card">
+                <h2>Network & Sharing</h2>
+                <div class="row" style="gap:10px; align-items:center;">
+                    <div class="form-group" style="min-width:180px;">
+                        <label>Local IPv4</label>
+                        <input id="local-ip" type="text" readonly>
+                    </div>
+                    <button class="btn" id="btn-refresh-ip">Refresh</button>
+                    <span class="small">Use this for router port forwarding (Internal IP)</span>
+                </div>
+                <div class="row" style="gap:10px; align-items:center; margin-top:8px;">
+                    <div class="form-group" style="min-width:180px;">
+                        <label>Public IP</label>
+                        <input id="public-ip" type="text" readonly>
+                    </div>
+                    <button class="btn" id="btn-refresh-public-ip">Refresh</button>
+                    <button class="btn secondary" id="btn-set-public-url">Set as PUBLIC_BASE_URL</button>
+                </div>
+                <div class="row" style="gap:10px; align-items:center; margin-top:8px;">
+                    <div class="form-group" style="flex:1; min-width:260px;">
+                        <label>Public Leaderboard Link</label>
+                        <input id="public-leaderboard-link" type="text" readonly>
+                    </div>
+                    <button class="btn" id="btn-copy-leaderboard-link">Copy</button>
+                </div>
+            </div>
+            <div class="card">
+                <h2>Port Forwarding</h2>
+                <ul>
+                    <li>Forward <code class="inline">WEB_PORT</code> (default <code class="inline">8080</code>) to your PC's <strong>Local IPv4</strong>.</li>
+                    <li>Protocol: <strong>TCP</strong>. Allow through OS firewall when prompted.</li>
+                    <li>Test public: <code class="inline">http://YOUR_PUBLIC_IP:WEB_PORT/leaderboard</code></li>
+                    <li>Alternatively use a tunnel (ngrok/cloudflared) and set <code class="inline">PUBLIC_BASE_URL</code>.</li>
+                </ul>
+                <div class="row" style="gap:8px; margin-top:6px;">
+                    <a class="btn secondary" href="/docs/PORT_FORWARDING.md" target="_blank">Open Guide</a>
+                    <a class="btn secondary" href="/docs/WEB.md" target="_blank">Web/Tunnels</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- EventSub Tab -->
+        <div id="tab-eventsub" class="tab-content">
+            <div class="card">
+                <h2>EventSub (Channel Points) - Step by Step</h2>
+                <ol style="margin-left:18px;">
+                    <li>Enable EventSub and set a long random secret.</li>
+                    <li>Expose your EventSub listener with HTTPS (tunnel or reverse proxy).</li>
+                    <li>Start the bot (listener runs with the bot).</li>
+                    <li>Create subscription in Twitch console: <code class="inline">channel.channel_points_custom_reward_redemption.add</code>.</li>
+                    <li>Use the Callback URL below in your subscription.</li>
+                </ol>
+                <form id="eventsub-form" style="margin-top:10px;">
+                    <div class="row">
+                        <div class="form-group" style="min-width:160px;">
+                            <label>Enable</label>
+                            <select id="ev_enable" name="ENABLE_EVENTSUB">
+                                <option value="false" {{ 'selected' if env_vars.ENABLE_EVENTSUB|lower != 'true' else '' }}>Disabled</option>
+                                <option value="true" {{ 'selected' if env_vars.ENABLE_EVENTSUB|lower == 'true' else '' }}>Enabled</option>
+                            </select>
+                        </div>
+                        <div class="form-group" style="min-width:140px;">
+                            <label for="ev_port">EVENTSUB_PORT</label>
+                            <input type="number" id="ev_port" name="EVENTSUB_PORT" value="{{ env_vars.EVENTSUB_PORT }}" placeholder="8081">
+                        </div>
+                        <div class="form-group" style="flex:1; min-width:220px;">
+                            <label for="ev_secret">EVENTSUB_SECRET</label>
+                            <input type="text" id="ev_secret" name="EVENTSUB_SECRET" value="{{ env_vars.EVENTSUB_SECRET }}" placeholder="choose-a-long-random-secret">
+                        </div>
+                    </div>
+                    <div class="row" style="margin-top:8px; align-items:center;">
+                        <div class="form-group" style="flex:1; min-width:280px;">
+                            <label>Callback URL</label>
+                            <input type="text" id="ev_callback" readonly placeholder="Set PUBLIC_BASE_URL in Configuration tab">
+                            <div class="small">Formula: PUBLIC_BASE_URL + /eventsub (must be HTTPS)</div>
+                        </div>
+                        <button type="button" class="btn" id="btn-copy-callback">Copy</button>
+                        <a class="btn secondary" href="https://dev.twitch.tv/console/eventsub" target="_blank">Open Twitch EventSub</a>
+                    </div>
+                    <div class="row" style="gap:8px; margin-top:8px;">
+                        <button type="submit" class="btn">Save EventSub</button>
+                        <a class="btn secondary" href="/docs/EVENTSUB.md" target="_blank">Full Guide</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+
         <div id="message" class="message"></div>
     </div>
-    
+
     <script>
+        // Tabs
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                const target = btn.getAttribute('data-tab');
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                document.getElementById(target).classList.add('active');
+                if (target === 'tab-network') { loadNetwork(); }
+                if (target === 'tab-eventsub') { updateCallback(); }
+            });
+        });
+
+        // Socket status
         const socket = io();
         const startBtn = document.getElementById('start-btn');
         const stopBtn = document.getElementById('stop-btn');
         const statusEl = document.getElementById('status');
         const messageEl = document.getElementById('message');
-        
         socket.on('status_update', function(data) {
             statusEl.className = `status-indicator status-${data.status}`;
             statusEl.innerHTML = `<span>${data.message}</span>`;
             startBtn.disabled = (data.status === 'running');
             stopBtn.disabled = (data.status === 'stopped');
         });
-        
+
         function showMessage(text, type = 'success') {
             messageEl.textContent = text;
             messageEl.className = `message ${type}`;
             messageEl.style.display = 'block';
-            setTimeout(() => messageEl.style.display = 'none', 5000);
+            setTimeout(() => messageEl.style.display = 'none', 4000);
         }
-        
+
+        // Save config
         document.getElementById('config-form').addEventListener('submit', async function(e) {
             e.preventDefault();
-            const formData = new FormData(e.target);
-            const data = Object.fromEntries(formData.entries());
+            const data = Object.fromEntries(new FormData(e.target).entries());
             try {
-                const response = await fetch('/api/save-config', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(data)
-                });
-                const result = await response.json();
-                showMessage(result.message, result.success ? 'success' : 'error');
-            } catch (error) {
-                showMessage('Error: ' + error.message, 'error');
-            }
+                const res = await fetch('/api/save-config', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(data)});
+                const out = await res.json();
+                showMessage(out.message, out.success ? 'success' : 'error');
+                updateCallback();
+                loadNetwork();
+            } catch (err) { showMessage('Error: ' + err.message, 'error'); }
         });
-        
-        startBtn.addEventListener('click', async function() {
-            const response = await fetch('/api/start-bot', { method: 'POST' });
-            const result = await response.json();
-            showMessage(result.message, result.success ? 'success' : 'error');
-        });
-        
-        stopBtn.addEventListener('click', async function() {
-            const response = await fetch('/api/stop-bot', { method: 'POST' });
-            const result = await response.json();
-            showMessage(result.message, result.success ? 'success' : 'error');
-        });
-        
-        document.getElementById('leaderboard-btn').addEventListener('click', async function() {
-            const response = await fetch('/api/open-leaderboard', { method: 'POST' });
-            const result = await response.json();
-            showMessage(result.message, result.success ? 'success' : 'error');
-        });
+
+        // Bot control
+        startBtn.addEventListener('click', async function(){ const res = await fetch('/api/start-bot', { method:'POST' }); const out = await res.json(); showMessage(out.message, out.success?'success':'error'); });
+        stopBtn.addEventListener('click', async function(){ const res = await fetch('/api/stop-bot', { method:'POST' }); const out = await res.json(); showMessage(out.message, out.success?'success':'error'); });
+        document.getElementById('leaderboard-btn').addEventListener('click', async function(){ const res = await fetch('/api/open-leaderboard', { method:'POST' }); const out = await res.json(); showMessage(out.message, out.success?'success':'error'); });
+
+        // Token helpers
+        document.getElementById('btn-show-token').addEventListener('click', function(){ const el = document.getElementById('token'); if (el.type==='password'){ el.type='text'; this.textContent='Hide'; } else { el.type='password'; this.textContent='Show'; } });
+
+        // Network helpers
+        async function loadNetwork(){ await loadLocalIP(); await loadPublicIP(); updateLinks(); }
+        async function loadLocalIP(){ try{ const r = await fetch('/api/network-info'); const d = await r.json(); document.getElementById('local-ip').value = d.local_ipv4 || ''; }catch{} }
+        async function loadPublicIP(){ try{ const r = await fetch('/api/public-ip'); const d = await r.json(); document.getElementById('public-ip').value = d.public_ip || 'Not found'; }catch{} }
+        function updateLinks(){ const ip = document.getElementById('public-ip').value; const port = document.getElementById('web_port').value || '8080'; const url = (ip && ip!=='Not found') ? `http://${ip}:${port}/leaderboard` : ''; document.getElementById('public-leaderboard-link').value = url; }
+        document.getElementById('btn-refresh-ip').addEventListener('click', loadLocalIP);
+        document.getElementById('btn-refresh-public-ip').addEventListener('click', loadPublicIP);
+        document.getElementById('web_port').addEventListener('input', updateLinks);
+        document.getElementById('btn-copy-leaderboard-link').addEventListener('click', function(){ const i=document.getElementById('public-leaderboard-link'); i.select(); document.execCommand('copy'); showMessage('Copied!', 'success'); });
+        document.getElementById('btn-set-public-url').addEventListener('click', function(){ const ip = document.getElementById('public-ip').value; const port = document.getElementById('web_port').value || '8080'; if (ip && ip!=='Not found'){ document.getElementById('public_base_url').value = `http://${ip}:${port}`; showMessage('Set PUBLIC_BASE_URL. Click Save to persist.', 'success'); updateCallback(); } });
+
+        // EventSub helpers
+        function updateCallback(){ const base = document.getElementById('public_base_url').value.trim(); const cb = base ? `${base.replace(/\/$/, '')}/eventsub` : ''; const input = document.getElementById('ev_callback'); if (input) input.value = cb; }
+        document.getElementById('btn-copy-callback').addEventListener('click', function(){ const i=document.getElementById('ev_callback'); i.select(); document.execCommand('copy'); showMessage('Copied!', 'success'); });
+        document.getElementById('eventsub-form').addEventListener('submit', async function(e){ e.preventDefault(); const data = { ENABLE_EVENTSUB: document.getElementById('ev_enable').value, EVENTSUB_PORT: document.getElementById('ev_port').value, EVENTSUB_SECRET: document.getElementById('ev_secret').value }; try{ const r=await fetch('/api/save-config',{method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(data)}); const out=await r.json(); showMessage(out.message, out.success?'success':'error'); }catch(err){ showMessage('Error: '+err.message,'error'); } });
+
+        // Initial minimal loads
+        updateCallback();
     </script>
 </body>
 </html>

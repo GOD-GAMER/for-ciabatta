@@ -5,9 +5,12 @@ import os
 import logging
 from datetime import datetime
 from dotenv import set_key, load_dotenv
-from flask import Flask, render_template, request, jsonify, redirect, url_for
+from flask import Flask, render_template, request, jsonify, redirect, url_for, send_from_directory
 from flask_socketio import SocketIO, emit
 import json
+import socket
+import re
+import requests
 
 from .bot import BakeBot
 from .logging_config import setup_logging
@@ -62,6 +65,10 @@ load_dotenv()
 setup_logging()
 logger = logging.getLogger('BakeBot.WebGUI')
 
+# Paths
+PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+DOCS_PATH = os.path.join(PROJECT_ROOT, 'docs')
+
 # Create Flask app
 app = Flask(__name__, 
            template_folder=os.path.join(os.path.dirname(__file__), 'templates'),
@@ -74,6 +81,45 @@ socketio = SocketIO(app, cors_allowed_origins="*")
 # Create bot manager
 bot_manager = BotManager(socketio)
 
+def _get_local_ipv4():
+    # UDP socket trick: no traffic is sent, but OS selects the egress interface
+    try:
+        with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
+            s.connect(('8.8.8.8', 80))
+            ip = s.getsockname()[0]
+            if ip and not ip.startswith('127.'):
+                return ip
+    except Exception:
+        pass
+    # Hostname lookup fallback
+    try:
+        hostname = socket.gethostname()
+        ips = socket.gethostbyname_ex(hostname)[2]
+        for ip in ips:
+            if re.match(r'^\d+\.\d+\.\d+\.\d+$', ip) and not ip.startswith('127.'):
+                return ip
+    except Exception:
+        pass
+    return ''
+
+@app.route('/api/network-info')
+def network_info():
+    return jsonify({ 'local_ipv4': _get_local_ipv4() })
+
+@app.route('/api/public-ip')
+def public_ip():
+    try:
+        ip = requests.get('https://api.ipify.org', timeout=5).text.strip()
+    except Exception as e:
+        logger.warning('Failed to fetch public IP: %s', e)
+        ip = ''
+    return jsonify({ 'public_ip': ip })
+
+@app.route('/docs/<path:filename>')
+def serve_docs(filename):
+    safe = os.path.normpath(filename).lstrip(os.sep)
+    return send_from_directory(DOCS_PATH, safe)
+
 @app.route('/')
 def dashboard():
     """Main dashboard page"""
@@ -83,7 +129,12 @@ def dashboard():
         'TWITCH_CHANNEL': os.getenv('TWITCH_CHANNEL', ''),
         'PREFIX': os.getenv('PREFIX', '!'),
         'WEB_HOST': os.getenv('WEB_HOST', '127.0.0.1'),
-        'WEB_PORT': os.getenv('WEB_PORT', '8080')
+        'WEB_PORT': os.getenv('WEB_PORT', '8080'),
+        'PUBLIC_BASE_URL': os.getenv('PUBLIC_BASE_URL', ''),
+        'ENABLE_EVENTSUB': os.getenv('ENABLE_EVENTSUB', 'false'),
+        'EVENTSUB_SECRET': os.getenv('EVENTSUB_SECRET', ''),
+        'EVENTSUB_PORT': os.getenv('EVENTSUB_PORT', '8081'),
+        'SECRET_KEY': os.getenv('SECRET_KEY', 'bakebot-secret-key-change-me'),
     }
     return render_template('dashboard.html', env_vars=env_vars, status=bot_manager.status)
 
@@ -116,13 +167,17 @@ def oauth_wizard():
 def save_config():
     """Save configuration to .env file"""
     try:
-        data = request.json
+        data = request.json or {}
         env_path = os.path.abspath('.env')
-        
+        allowed = [
+            'TWITCH_TOKEN', 'TWITCH_CLIENT_ID', 'TWITCH_CHANNEL',
+            'PREFIX', 'WEB_HOST', 'WEB_PORT', 'PUBLIC_BASE_URL',
+            'ENABLE_EVENTSUB', 'EVENTSUB_SECRET', 'EVENTSUB_PORT', 'SECRET_KEY'
+        ]
         for key, value in data.items():
-            if key in ['TWITCH_TOKEN', 'TWITCH_CLIENT_ID', 'TWITCH_CHANNEL', 'PREFIX', 'WEB_HOST', 'WEB_PORT']:
-                set_key(env_path, key, value)
-        
+            if key in allowed:
+                set_key(env_path, key, str(value))
+        load_dotenv(override=True)
         return jsonify({'success': True, 'message': 'Configuration saved successfully'})
     except Exception as e:
         return jsonify({'success': False, 'message': str(e)})
@@ -154,9 +209,13 @@ def open_leaderboard():
     try:
         host = os.getenv('WEB_HOST', '127.0.0.1')
         port = os.getenv('WEB_PORT', '8080')
-        url = f"http://{host}:{port}/leaderboard"
+        base = os.getenv('PUBLIC_BASE_URL', '').strip()
+        if base:
+            url = f"{base.rstrip('/')}/leaderboard"
+        else:
+            url = f"http://{host}:{port}/leaderboard"
         webbrowser.open(url)
-        return jsonify({'success': True, 'message': 'Leaderboard opened in browser'})
+        return jsonify({'success': True, 'message': f'Opened {url}'})
     except Exception as e:
         return jsonify({'success': False, 'message': str(e)})
 
@@ -167,20 +226,15 @@ def handle_connect():
 
 def main():
     """Run the web GUI"""
-    print("?? BakeBot Web GUI")
+    print("BakeBot Web GUI")
     print("=================")
     print("Opening web interface...")
-    
-    # Open browser
     host = '127.0.0.1'
     port = 5000
     url = f"http://{host}:{port}"
-    
-    threading.Timer(1.5, lambda: webbrowser.open(url)).start()
-    
+    threading.Timer(1.0, lambda: webbrowser.open(url)).start()
     print(f"Web GUI available at: {url}")
     print("Press Ctrl+C to stop")
-    
     try:
         socketio.run(app, host=host, port=port, debug=False)
     except KeyboardInterrupt:
