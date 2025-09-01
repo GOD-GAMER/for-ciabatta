@@ -1,321 +1,278 @@
-# ?? BakeBot - Twitch Chat Bot
+# ?? BakeBot - Fun Twitch Chat Bot for Streamers
 
 [![GitHub release](https://img.shields.io/github/v/release/GOD-GAMER/for-ciabatta)](https://github.com/GOD-GAMER/for-ciabatta/releases)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-A cozy Twitch baking-themed chat bot with mini-games, token economy, bread fights, and a modern web dashboard. Perfect for streamers who want to engage their community with fun interactive features!
+## ?? What is BakeBot?
 
-## ? Key Features
+BakeBot is a **fun chat bot for Twitch streamers**! It's like having a friendly helper in your chat that:
+- Plays fun baking games with your viewers ??
+- Gives out virtual tokens (like coins) that viewers can collect ??
+- Shows a leaderboard of your most active fans ??
+- Works through an **easy website** - no coding needed! ???
 
-?? **Interactive Mini-Games**
-- Guess the Ingredient challenges
-- Oven trivia questions  
-- Seasonal baking events
-- Turn-based bread fights with trivia
-
-?? **Token Economy**
-- Daily/hourly rewards
-- Virtual shop system
-- Token gifting between viewers
-- Admin tools for management
-
-?? **Modern Web Dashboard**
-- Start/stop bot control
-- Live configuration editor
-- User management interface
-- Public leaderboard page
-
-?? **Twitch Integration**
-- EventSub for channel points
-- Follow/sub/cheer rewards
-- OAuth wizard for easy setup
-- Automatic token capture
-
-## ?? Quick Start for Streamers
-
-### Download & Extract
-1. **Download:** [Latest Release](https://github.com/GOD-GAMER/for-ciabatta/releases)
-2. **Extract** the ZIP to your desired folder
-3. **Install Python 3.10+** if not already installed
-
-### Setup (5 minutes)
-```bash
-# Install dependencies
-pip install -r requirements.txt
-
-# Start BakeBot
-python -m bot.gui
-```
-
-### Configure
-1. Browser opens automatically to `http://127.0.0.1:5000`
-2. Click **"OAuth Wizard"** to get your Twitch token
-3. Enter your **Twitch channel name**
-4. Click **"Save Configuration"**
-5. Click **"Start Bot"**
-
-That's it! Type `!help` in your chat to test.
-
-## ?? How to Add Recipes (Step-by-Step)
-
-BakeBot includes a recipe sharing feature! Here's how to add your favorite recipes:
-
-### Method 1: Single Recipe (Easy)
-1. **Open Dashboard** - Go to `http://127.0.0.1:5000` in your browser
-2. **Click "Recipes" Tab** - Located in the top navigation
-3. **Fill in Recipe Details:**
-   - **Title** - Recipe name (e.g., "Classic Chocolate Chip Cookies")
-   - **URL** - Optional link to full recipe (e.g., AllRecipes link)
-   - **Description** - Short description (e.g., "The ultimate comfort cookie")
-   - **Order** - Display order (0 = first, higher numbers appear later)
-   - **Visible** - Show on public recipes page (Yes/No)
-4. **Click "Add"** - Recipe is saved instantly
-5. **View Result** - Visit `http://localhost:8080/recipes` to see your recipe
-
-### Method 2: Bulk Import (Multiple Recipes)
-1. **Prepare Your Data** in one of these formats:
-
-   **Format A: Simple Lines (Title|URL|Description)**
-   ```
-   Classic Chocolate Chip Cookies|https://allrecipes.com/recipe/10813|The ultimate comfort cookie
-   Fluffy Pancakes|https://kingarthurbaking.com/recipes/238|Perfect weekend breakfast treat
-   Cinnamon Rolls|https://example.com/cinnamon-rolls|Soft, sweet, and irresistible
-   ```
-
-   **Format B: JSON Array**
-   ```json
-   [
-     {
-       "title": "Classic Chocolate Chip Cookies",
-       "url": "https://allrecipes.com/recipe/10813",
-       "description": "The ultimate comfort cookie",
-       "visible": true,
-       "ord": 0
-     },
-     {
-       "title": "Fluffy Pancakes", 
-       "url": "https://kingarthurbaking.com/recipes/238",
-       "description": "Perfect weekend breakfast treat",
-       "visible": true,
-       "ord": 1
-     }
-   ]
-   ```
-
-2. **Paste in Bulk Import Box** - Located below the single recipe form
-3. **Click "Import"** - All recipes are added at once
-4. **Success!** - You'll see a confirmation message
-
-### Method 3: Try the Demo
-1. **Click "Fill Demo"** - Adds sample recipes to see the format
-2. **Click "Import"** - Imports the demo recipes
-3. **Edit as Needed** - Modify the demo recipes in the table below
-
-### Managing Your Recipes
-- **Edit** - Click in any table cell to modify recipes
-- **Save** - Click "Save" button for individual recipes
-- **Delete** - Click red "Delete" button to remove recipes
-- **Reorder** - Change the "Order" number and save
-
-### Share with Viewers
-Once you've added recipes, share the public page:
-- **Local Link**: `http://localhost:8080/recipes`
-- **Public Link**: See port forwarding guide to make it accessible online
-- **In Chat**: Bot automatically shares the recipes link when viewers ask
-
-## ?? Chat Commands
-
-### Viewer Commands
-- `!help` - Show available commands
-- `!tokens` - Check token balance
-- `!daily` - Claim daily bonus (10-30 tokens)
-- `!hourly` - Claim hourly bonus (3 tokens)
-- `!work` - Work for tokens (2-5 tokens, 5min cooldown)
-- `!shop` - View shop items
-- `!buy <item>` - Purchase shop items
-- `!gift @user <amount>` - Gift tokens to others
-- `!level` - Show your stats and level
-- `!leaderboard` - Get leaderboard link
-- `!recipes` - Get recipes link
-
-### Mini-Games
-- `!guess` - Start ingredient guessing game (5 XP + tokens)
-- `!oventrivia` - Baking trivia questions (5 XP + tokens) 
-- `!seasonal` - Seasonal baking events
-- `!fight @user` - Challenge someone to bread combat
-- `!accept` - Accept a bread fight challenge
-
-### Admin Commands (Broadcaster/Mods)
-- `!give @user <amount>` - Give tokens to user
-- `!ban @user` / `!unban @user` - Bot ban/unban
-- `!title @user <title>` / `!untitle @user` - Custom titles
-- `!note @user <text>` - Add notes to users
-
-## ?? Public Features
-
-### Leaderboard
-Share with your community: `http://localhost:8080/leaderboard`
-- Top viewers by XP and wins
-- Real-time updates
-- Mobile-friendly design
-
-### Recipes Page
-Share your favorites: `http://localhost:8080/recipes`
-- Add recipes via GUI
-- Bulk import support
-- Public recipe sharing
-
-### Port Forwarding
-Make your leaderboard public with our detailed guides:
-- Router-specific instructions
-- Windows Firewall commands
-- Tunnel alternatives (ngrok, cloudflared)
-
-## ?? Advanced Features
-
-### EventSub Integration
-Connect Twitch channel points to bot rewards:
-- Automatic token distribution for follows/subs
-- Configurable reward amounts and cooldowns
-- GUI-based mapping editor
-- Support for bits, raids, and more
-
-### Token Economy
-- **Shop Items:** XP boosts, custom titles, confetti effects
-- **Daily Streaks:** Increasing rewards for consecutive days
-- **Work System:** Earn tokens with short tasks
-- **Gifting:** Community interaction through token sharing
-
-### Bread Fight System
-Turn-based combat with baking knowledge:
-- Health, attack, defense stats
-- Trivia questions for bonus damage
-- Win/loss tracking
-- Spectator-friendly combat
-
-## ?? Dashboard Features
-
-Access at `http://127.0.0.1:5000`:
-
-### Control Panel
-- Start/stop bot with one click
-- Real-time status monitoring
-- Quick access to public links
-
-### Configuration
-- OAuth wizard for easy token setup
-- Environment variable editor
-- Network configuration helpers
-
-### User Management
-- View all registered users
-- Edit tokens, XP, notes
-- Ban/unban functionality
-- User activity tracking
-
-### Event Management
-- Configure EventSub mappings
-- Set up channel point rewards
-- Customize cooldowns and limits
-
-## ??? Installation & Setup
-
-### Requirements
-- Python 3.10 or newer
-- Windows 10/11 (Linux/macOS also supported)
-- Twitch account for bot authentication
-
-### Detailed Setup
-See our comprehensive guides:
-- **[Setup Guide](docs/SETUP.md)** - Step-by-step installation
-- **[Commands Reference](docs/COMMANDS.md)** - Complete command list  
-- **[Port Forwarding](docs/PORT_FORWARDING.md)** - Make leaderboard public
-- **[Troubleshooting](docs/TROUBLESHOOTING.md)** - Common issues and fixes
-
-### Development
-```bash
-# Clone repository
-git clone https://github.com/GOD-GAMER/for-ciabatta.git
-cd for-ciabatta
-
-# Create virtual environment
-python -m venv .venv
-.venv\Scripts\activate  # Windows
-source .venv/bin/activate  # Linux/macOS
-
-# Install dependencies
-pip install -r requirements.txt
-
-# Start development
-python -m bot.gui
-```
-
-## ?? Security
-
-- **Keep tokens private** - Never share your `.env` file
-- **Local GUI only** - Dashboard stays on localhost
-- **HTTPS for public** - Use secure tunnels for EventSub
-- **Regular updates** - Keep dependencies current
-
-## ?? Contributing
-
-We welcome contributions! Please read our guidelines:
-
-1. **Fork** the repository
-2. **Create** a feature branch
-3. **Make** your changes with tests
-4. **Submit** a pull request
-
-### Development Areas
-- New mini-games and challenges
-- Additional shop items and effects
-- Enhanced web dashboard features
-- Integration with other platforms
-- Performance optimizations
-
-## ?? Changelog
-
-### v0.2.4 (Latest)
-- ? Comprehensive recipe adding guide
-- ? Step-by-step documentation for streamers
-- ? Enhanced streamer experience with detailed instructions
-
-### v0.2.3
-- ? Professional GitHub README with badges and features
-- ? Contribution guidelines and development setup
-- ? Enhanced documentation structure
-
-### v0.2.2
-- ? Streamer-ready release package
-- ? Enhanced documentation and setup guides
-- ? Improved build scripts for distribution
-
-### v0.2.1
-- ? EventSub expansion (follows, subs, cheers, raids)
-- ? GUI mapping editor with cooldowns
-- ? Metadata API for configuration storage
-
-### Previous Versions
-- Dynamic recipes system with GUI management
-- Automatic OAuth token capture
-- Bulk recipe import/export
-- Network tools and public IP detection
-
-See [RELEASE_NOTES.md](RELEASE_NOTES.md) for complete changelog.
-
-## ?? Support
-
-- **Documentation:** Check the `docs/` folder
-- **Issues:** [GitHub Issues](https://github.com/GOD-GAMER/for-ciabatta/issues)
-- **Security:** Report privately to maintainers
-
-## ?? License
-
-This project is licensed under the MIT License - see [LICENSE](LICENSE) for details.
+**Perfect for:** Cooking streamers, baking enthusiasts, or anyone who wants their chat to be more fun and interactive!
 
 ---
 
-**Made with ?? for the Twitch streaming community**
+## ?? What Can BakeBot Do?
 
-*Get your viewers engaged with baking-themed fun! Perfect for cooking streamers, community builders, and anyone who wants interactive chat features.*
+### ?? Fun Games Your Viewers Will Love
+- **Guess the Ingredient** - "Is it flour or sugar?"
+- **Oven Trivia** - Baking questions with prizes
+- **Bread Fights** - Viewers battle with baking knowledge
+- **Seasonal Events** - Special holiday-themed games
+
+### ?? Token System (Like a Fun Economy)
+- Viewers earn tokens by chatting and playing games
+- Daily bonuses for regular viewers
+- Virtual shop with fun rewards
+- Viewers can gift tokens to each other
+
+### ?? Community Features  
+- **Leaderboard** - Show off your most active fans
+- **Recipe Sharing** - Share your favorite recipes with viewers
+- **Custom Titles** - Give special titles to your best supporters
+
+---
+
+## ?? Super Easy Setup (Anyone Can Do This!)
+
+### Step 1: Download Python
+1. Go to [python.org](https://python.org/downloads/)
+2. Click the big **"Download Python"** button
+3. Run the installer and **check "Add Python to PATH"**
+4. Click **"Install Now"**
+
+### Step 2: Download BakeBot
+1. Click **[here to download BakeBot](https://github.com/GOD-GAMER/for-ciabatta/releases)** (get the latest ZIP file)
+2. **Extract** the ZIP file to a folder (like your Desktop)
+3. Remember where you put it!
+
+### Step 3: Install BakeBot
+1. **Open Command Prompt** (search "cmd" in Windows)
+2. **Type this:** `cd Desktop\for-ciabatta` (or wherever you put the folder)
+3. **Press Enter**
+4. **Type this:** `pip install -r requirements.txt`
+5. **Press Enter** and wait for it to finish
+
+### Step 4: Start BakeBot
+1. **Type this:** `python -m bot.gui`
+2. **Press Enter**
+3. A website will open automatically! ??
+
+### Step 5: Connect to Twitch (Super Important!)
+1. In the website that opened, click **"OAuth Wizard"**
+2. It will take you to Twitch - **log in with your streaming account**
+3. Click **"Authorize"** to give BakeBot permission
+4. You'll be sent back automatically ?
+
+### Step 6: Tell BakeBot Your Channel
+1. Go to **"Configuration"** tab
+2. In **"Twitch Channel"** box, type your Twitch username (lowercase)
+3. Click **"Save Configuration"**
+
+### Step 7: Start the Bot!
+1. Click the big **"Start Bot"** button
+2. Wait for it to say "Bot Running" ?
+3. Go to your Twitch chat and type `!help`
+4. If BakeBot responds, **you did it!** ??
+
+---
+
+## ?? How Your Viewers Use BakeBot
+
+### Basic Commands (Anyone Can Use)
+- `!help` - Shows all available commands
+- `!tokens` - Check how many tokens they have
+- `!daily` - Get free daily tokens (10-30 tokens!)
+- `!shop` - See what they can buy with tokens
+- `!level` - See their stats and level
+
+### Fun Game Commands
+- `!guess` - Start the ingredient guessing game
+- `!oventrivia` - Answer baking trivia questions
+- `!fight @username` - Challenge someone to a bread fight!
+- `!accept` - Accept a bread fight challenge
+
+### Special Commands (Only You Can Use)
+- `!give @viewer 50` - Give tokens to a viewer
+- `!ban @user` - Ban someone from using the bot
+- `!title @user Baker` - Give someone a cool title
+
+---
+
+## ?? How to Add Your Recipes (Easy!)
+
+Your viewers will love seeing your favorite recipes! Here's how to add them:
+
+### Method 1: Add One Recipe at a Time
+1. Open the BakeBot website (it should still be open at `http://127.0.0.1:5000`)
+2. Click the **"Recipes"** tab at the top
+3. Fill in your recipe:
+   - **Title:** "My Amazing Chocolate Cookies"
+   - **URL:** Link to the full recipe (optional)
+   - **Description:** "The best cookies ever!"
+4. Click **"Add"**
+5. Done! Your viewers can now see it at `http://localhost:8080/recipes`
+
+### Method 2: Add Many Recipes at Once
+1. In the **"Bulk Import"** box, paste recipes like this:
+   ```
+   Chocolate Cookies|https://example.com/cookies|Super yummy cookies
+   Banana Bread|https://example.com/bread|Moist and delicious
+   Apple Pie|https://example.com/pie|Classic American dessert
+   ```
+2. Click **"Import"**
+3. All your recipes are added instantly!
+
+### Method 3: Try the Examples First
+1. Click **"Fill Demo"** to see example recipes
+2. Click **"Import"** to add them
+3. Now you can edit them to be your own recipes
+
+---
+
+## ?? Share Your Leaderboard with Viewers
+
+Your viewers will love seeing who's winning! Here's how to share it:
+
+### Easy Way (Works Right Away)
+- Tell your viewers to visit: `http://localhost:8080/leaderboard`
+- This only works if they're on the same WiFi as you
+
+### Advanced Way (Share with the Internet)
+This is a bit more technical, but lets anyone see your leaderboard:
+
+1. **Set up Port Forwarding** (ask a tech-savvy friend to help):
+   - Open your router settings
+   - Forward port 8080 to your computer
+   - Get your public IP address
+2. **Or use a Tunnel Service** (easier):
+   - Download [ngrok](https://ngrok.com/)
+   - Run: `ngrok http 8080`
+   - Share the link it gives you!
+
+**Need Help?** Check our [Port Forwarding Guide](docs/PORT_FORWARDING.md) for detailed steps.
+
+---
+
+## ??? Using the Dashboard
+
+The BakeBot website has several tabs to help you:
+
+### ?? Control Tab
+- **Start/Stop the bot** - Big green and red buttons
+- **See if it's working** - Shows "Bot Running" or "Bot Stopped"
+- **Quick links** to guides and help
+
+### ?? Configuration Tab  
+- **Change settings** like your Twitch channel name
+- **Get your token** using the OAuth Wizard
+- **Adjust ports** if needed (usually don't need to change)
+
+### ?? Network Tab
+- **See your IP addresses** for sharing publicly
+- **Copy links** to share with viewers
+- **Port forwarding helpers**
+
+### ?? EventSub Tab (Advanced)
+- **Connect channel points** to bot rewards
+- **Set up follows/subs** to give automatic tokens
+- **Advanced users only** - skip if you're just starting
+
+### ?? Recipes Tab
+- **Add your favorite recipes** for viewers to see
+- **Import many at once** using copy-paste
+- **Manage and edit** existing recipes
+
+---
+
+## ?? Help! Something's Not Working
+
+### Bot Won't Start
+- **Check:** Did you enter your Twitch channel name?
+- **Check:** Did you complete the OAuth Wizard?
+- **Try:** Click "Stop Bot" then "Start Bot" again
+
+### Commands Don't Work in Chat
+- **Check:** Is the bot actually running? (should say "Bot Running")
+- **Check:** Are you typing in the right Twitch channel?
+- **Try:** Type `!help` to test
+
+### Website Won't Open
+- **Try:** Go to `http://127.0.0.1:5000` manually
+- **Check:** Did you run `python -m bot.gui`?
+- **Try:** Close everything and start over from Step 4
+
+### Viewers Can't See Leaderboard
+- **Check:** Are they using `http://localhost:8080/leaderboard`?
+- **Remember:** This only works for people on your same WiFi
+- **Advanced:** Set up port forwarding for internet access
+
+### Need More Help?
+- **Check our guides:** Look in the `docs/` folder for detailed help
+- **Common issues:** See [TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md)
+- **Ask for help:** Create an issue on GitHub
+
+---
+
+## ?? You Did It!
+
+Congratulations! You now have:
+- ? A fun chat bot running in your stream
+- ? Games for your viewers to play
+- ? A token economy to keep people engaged
+- ? A leaderboard to show your most active fans
+- ? Recipe sharing for your baking content
+
+**Your viewers will love the interactive features!** 
+
+---
+
+## ?? Keep Your Bot Safe
+
+- **Never share your `.env` file** - it contains your secret tokens
+- **Keep the dashboard private** - only you should access `127.0.0.1:5000`
+- **Only share the leaderboard** - `localhost:8080/leaderboard` is safe to share
+- **Don't share your Twitch token** with anyone
+
+---
+
+## ?? Want to Help Make BakeBot Better?
+
+We love when people help improve BakeBot! If you know how to code:
+
+1. **Fork** this repository on GitHub
+2. **Make your changes** or add new features  
+3. **Test everything** works properly
+4. **Submit a pull request** to share your improvements
+
+**Ideas for improvements:**
+- New mini-games
+- More shop items
+- Better graphics for the website
+- New features for streamers
+
+---
+
+## ?? What's New (Latest Updates)
+
+### Version 0.2.5 (Current)
+- ? Much easier to understand documentation
+- ? Step-by-step setup guide anyone can follow
+- ? Combined all guides into one simple README
+
+### Previous Updates
+- Recipe sharing system with easy bulk import
+- EventSub integration for channel points
+- Professional web dashboard
+- Automatic OAuth token setup
+- Network tools for public sharing
+
+---
+
+**Made with ?? love for streamers and their communities!**
+
+*Perfect for cooking streamers, baking enthusiasts, and anyone who wants their Twitch chat to be more fun and interactive!*
