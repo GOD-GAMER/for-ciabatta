@@ -30,8 +30,7 @@ INCLUDE_DIRS = [
 
 INCLUDE_FILES = [
     'requirements.txt',
-    'README.md',
-    'STREAMER_README.md',  # Streamer-specific guide
+    'README.md',  # Main README now contains all streamer info
 ]
 
 # Patterns to exclude (directories or files)
@@ -49,6 +48,8 @@ EXCLUDE_GLOBS = [
     '*.log',
     '.gitignore', '.gitkeep', '.githooks',    # Git-specific
     'automod.py',   # AutoMod was reverted, don't include
+    'STREAMER_README.md',  # No longer needed - integrated into main README
+    'README_GITHUB.md',   # Duplicate file
 ]
 
 
@@ -153,7 +154,7 @@ def main(argv=None):
     print(f'?? SHA256: {digest}')
     
     print(f'\n?? Ready for distribution to streamers!')
-    print(f'?? Instructions for streamers are in STREAMER_README.md')
+    print(f'?? All instructions are now in the main README.md')
     print(f'?? Streamers just need: extract ? pip install -r requirements.txt ? python -m bot.gui')
 
 
