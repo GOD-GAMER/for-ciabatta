@@ -70,6 +70,7 @@
         <div class="tab-nav">
             <button class="tab-btn active" data-tab="tab-control">Control</button>
             <button class="tab-btn" data-tab="tab-config">Configuration</button>
+            <button class="tab-btn" data-tab="tab-toggles">Toggles</button>
             <button class="tab-btn" data-tab="tab-network">Network</button>
             <button class="tab-btn" data-tab="tab-eventsub">EventSub</button>
             <button class="tab-btn" data-tab="tab-recipes">Recipes</button>
@@ -144,6 +145,10 @@
                     <button type="submit" class="btn">Save Configuration</button>
                 </form>
             </div>
+        </div>
+
+        <!-- Toggles Tab -->
+        <div id="tab-toggles" class="tab-content">
             <div class="card">
                 <h2>Feature Toggles</h2>
                 <p class="small">Enable or disable commands and features instantly.</p>
@@ -332,6 +337,7 @@
                 if (target === 'tab-network') { loadNetwork(); }
                 if (target === 'tab-eventsub') { updateCallback(); }
                 if (target === 'tab-recipes') { loadRecipes(); }
+                if (target === 'tab-toggles') { loadFlags(); }
             });
         });
 
@@ -556,12 +562,6 @@
         document.getElementById('btn-flags-reload').addEventListener('click', loadFlags);
         document.getElementById('btn-flags-save').addEventListener('click', saveFlags);
         document.getElementById('btn-flags-defaults').addEventListener('click', flagDefaults);
-
-        // Ensure flags are loaded when opening Config tab
-        // Existing tab switcher already defined above; extend init
-        const _old_init = init;
-        function init(){ _old_init(); loadFlags(); }
-        window.init = init;
     </script>
 </body>
 </html>
