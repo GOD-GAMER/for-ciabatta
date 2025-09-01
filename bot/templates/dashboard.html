@@ -79,7 +79,7 @@
         <div id="tab-control" class="tab-content active">
             <div class="card">
                 <h2>Bot Control</h2>
-                <div class="row" style="justify-content:center; gap:10px;">
+                <div class="row" style="justify-content:center; gap:10px">
                     <button id="start-btn" class="btn">Start Bot</button>
                     <button id="stop-btn" class="btn danger" disabled>Stop Bot</button>
                     <button id="leaderboard-btn" class="btn secondary">Open Leaderboard</button>
@@ -90,7 +90,7 @@
             </div>
             <div class="card">
                 <h2>Quick Links</h2>
-                <div class="row" style="gap:8px;">
+                <div class="row" style="gap:8px">
                     <a class="btn secondary quick-link" data-action="open-setup" href="/docs/SETUP.md" target="_blank">Setup Guide</a>
                     <a class="btn secondary quick-link" data-action="open-port-forwarding" href="/docs/PORT_FORWARDING.md" target="_blank">Port Forwarding</a>
                     <a class="btn secondary quick-link" data-action="open-eventsub" href="/docs/EVENTSUB.md" target="_blank">EventSub Guide</a>
@@ -105,37 +105,37 @@
                 <form id="config-form">
                     <div class="form-group">
                         <label for="token">Twitch OAuth Token</label>
-                        <div class="row" style="gap:8px; align-items:center;">
-                            <input type="password" id="token" name="TWITCH_TOKEN" value="{{ env_vars.TWITCH_TOKEN }}" placeholder="oauth:xxxx" style="flex:1;">
+                        <div class="row" style="gap:8px; align-items:center">
+                            <input type="password" id="token" name="TWITCH_TOKEN" value="{{ env_vars.TWITCH_TOKEN }}" placeholder="oauth:xxxx" style="flex:1">
                             <button type="button" class="btn secondary" id="btn-show-token">Show</button>
                             <a class="btn" href="/oauth-wizard">Get Token</a>
                         </div>
                     </div>
                     <div class="row">
-                        <div class="form-group" style="flex:1; min-width:180px;">
+                        <div class="form-group" style="flex:1; min-width:180px">
                             <label for="client_id">Twitch Client ID</label>
                             <input type="text" id="client_id" name="TWITCH_CLIENT_ID" value="{{ env_vars.TWITCH_CLIENT_ID }}">
                         </div>
-                        <div class="form-group" style="flex:1; min-width:180px;">
+                        <div class="form-group" style="flex:1; min-width:180px">
                             <label for="channel">Twitch Channel</label>
                             <input type="text" id="channel" name="TWITCH_CHANNEL" value="{{ env_vars.TWITCH_CHANNEL }}" placeholder="yourchannel">
                         </div>
-                        <div class="form-group" style="flex:1; min-width:120px;">
+                        <div class="form-group" style="flex:1; min-width:120px">
                             <label for="prefix">Command Prefix</label>
                             <input type="text" id="prefix" name="PREFIX" value="{{ env_vars.PREFIX }}">
                         </div>
                     </div>
                     <div class="row">
-                        <div class="form-group" style="flex:1; min-width:160px;">
+                        <div class="form-group" style="flex:1; min-width:160px">
                             <label for="web_host">Web Host</label>
                             <input type="text" id="web_host" name="WEB_HOST" value="{{ env_vars.WEB_HOST }}" placeholder="0.0.0.0">
                             <div class="small">Use 0.0.0.0 for LAN/public</div>
                         </div>
-                        <div class="form-group" style="flex:1; min-width:120px;">
+                        <div class="form-group" style="flex:1; min-width:120px">
                             <label for="web_port">Web Port</label>
                             <input type="number" id="web_port" name="WEB_PORT" value="{{ env_vars.WEB_PORT }}" placeholder="8080">
                         </div>
-                        <div class="form-group" style="flex:2; min-width:220px;">
+                        <div class="form-group" style="flex:2; min-width:220px">
                             <label for="public_base_url">Public Base URL (optional)</label>
                             <input type="text" id="public_base_url" name="PUBLIC_BASE_URL" value="{{ env_vars.PUBLIC_BASE_URL }}" placeholder="https://yourdomain.example">
                             <div class="small">Used for public links in chat</div>
@@ -144,30 +144,43 @@
                     <button type="submit" class="btn">Save Configuration</button>
                 </form>
             </div>
+            <div class="card">
+                <h2>Feature Toggles</h2>
+                <p class="small">Enable or disable commands and features instantly.</p>
+                <div id="flags-list" class="row" style="gap:12px; align-items:flex-start">
+                    <!-- toggles populated by JS -->
+                </div>
+                <div class="row" style="gap:8px; margin-top:8px">
+                    <button class="btn" id="btn-flags-save">Save Toggles</button>
+                    <button class="btn secondary" id="btn-flags-reload">Reload</button>
+                    <button class="btn" id="btn-flags-defaults">Defaults</button>
+                </div>
+                <div class="small" style="margin-top:6px">Tip: Use group toggles like commands.__all__, games.__all__, economy.__all__ to quickly enable/disable categories.</div>
+            </div>
         </div>
 
         <!-- Network Tab -->
         <div id="tab-network" class="tab-content">
             <div class="card">
                 <h2>Network & Sharing</h2>
-                <div class="row" style="gap:10px; align-items:center;">
-                    <div class="form-group" style="min-width:180px;">
+                <div class="row" style="gap:10px; align-items:center">
+                    <div class="form-group" style="min-width:180px">
                         <label>Local IPv4</label>
                         <input id="local-ip" type="text" readonly>
                     </div>
                     <button class="btn" id="btn-refresh-ip">Refresh</button>
                     <span class="small">Use this for router port forwarding (Internal IP)</span>
                 </div>
-                <div class="row" style="gap:10px; align-items:center; margin-top:8px;">
-                    <div class="form-group" style="min-width:180px;">
+                <div class="row" style="gap:10px; align-items:center; margin-top:8px">
+                    <div class="form-group" style="min-width:180px">
                         <label>Public IP</label>
                         <input id="public-ip" type="text" readonly>
                     </div>
                     <button class="btn" id="btn-refresh-public-ip">Refresh</button>
                     <button class="btn secondary" id="btn-set-public-url">Set as PUBLIC_BASE_URL</button>
                 </div>
-                <div class="row" style="gap:10px; align-items:center; margin-top:8px;">
-                    <div class="form-group" style="flex:1; min-width:260px;">
+                <div class="row" style="gap:10px; align-items:center; margin-top:8px">
+                    <div class="form-group" style="flex:1; min-width:260px">
                         <label>Public Leaderboard Link</label>
                         <input id="public-leaderboard-link" type="text" readonly>
                     </div>
@@ -182,7 +195,7 @@
                     <li>Test public: <code class="inline">http://YOUR_PUBLIC_IP:WEB_PORT/leaderboard</code></li>
                     <li>Alternatively use a tunnel (ngrok/cloudflared) and set <code class="inline">PUBLIC_BASE_URL</code>.</li>
                 </ul>
-                <div class="row" style="gap:8px; margin-top:6px;">
+                <div class="row" style="gap:8px; margin-top:6px">
                     <a class="btn secondary" href="/docs/PORT_FORWARDING.md" target="_blank">Open Guide</a>
                     <a class="btn secondary" href="/docs/WEB.md" target="_blank">Web/Tunnels</a>
                 </div>
@@ -193,33 +206,33 @@
         <div id="tab-eventsub" class="tab-content">
             <div class="card">
                 <h2>EventSub (Channel Points) - Step by Step</h2>
-                <ol style="margin-left:18px;">
+                <ol style="margin-left:18px">
                     <li>Enable EventSub and set a long random secret.</li>
                     <li>Expose your EventSub listener with HTTPS (tunnel or reverse proxy).</li>
                     <li>Start the bot (listener runs with the bot).</li>
                     <li>Create subscription in Twitch console: <code class="inline">channel.channel_points_custom_reward_redemption.add</code>.</li>
                     <li>Use the Callback URL below in your subscription.</li>
                 </ol>
-                <form id="eventsub-form" style="margin-top:10px;">
+                <form id="eventsub-form" style="margin-top:10px">
                     <div class="row">
-                        <div class="form-group" style="min-width:160px;">
+                        <div class="form-group" style="min-width:160px">
                             <label>Enable</label>
                             <select id="ev_enable" name="ENABLE_EVENTSUB">
                                 <option value="false" {{ 'selected' if env_vars.ENABLE_EVENTSUB|lower != 'true' else '' }}>Disabled</option>
                                 <option value="true" {{ 'selected' if env_vars.ENABLE_EVENTSUB|lower == 'true' else '' }}>Enabled</option>
                             </select>
                         </div>
-                        <div class="form-group" style="min-width:140px;">
+                        <div class="form-group" style="min-width:140px">
                             <label for="ev_port">EVENTSUB_PORT</label>
                             <input type="number" id="ev_port" name="EVENTSUB_PORT" value="{{ env_vars.EVENTSUB_PORT }}" placeholder="8081">
                         </div>
-                        <div class="form-group" style="flex:1; min-width:220px;">
+                        <div class="form-group" style="flex:1; min-width:220px">
                             <label for="ev_secret">EVENTSUB_SECRET</label>
                             <input type="text" id="ev_secret" name="EVENTSUB_SECRET" value="{{ env_vars.EVENTSUB_SECRET }}" placeholder="choose-a-long-random-secret">
                         </div>
                     </div>
-                    <div class="row" style="margin-top:8px; align-items:center;">
-                        <div class="form-group" style="flex:1; min-width:280px;">
+                    <div class="row" style="margin-top:8px; align-items:center">
+                        <div class="form-group" style="flex:1; min-width:280px">
                             <label>Callback URL</label>
                             <input type="text" id="ev_callback" readonly placeholder="Set PUBLIC_BASE_URL in Configuration tab">
                             <div class="small">Formula: PUBLIC_BASE_URL + /eventsub (must be HTTPS)</div>
@@ -227,7 +240,7 @@
                         <button type="button" class="btn" id="btn-copy-callback">Copy</button>
                         <a class="btn secondary" href="https://dev.twitch.tv/console/eventsub" target="_blank">Open Twitch EventSub</a>
                     </div>
-                    <div class="row" style="gap:8px; margin-top:8px;">
+                    <div class="row" style="gap:8px; margin-top:8px">
                         <button type="submit" class="btn">Save EventSub</button>
                         <a class="btn secondary" href="/docs/EVENTSUB.md" target="_blank">Full Guide</a>
                     </div>
@@ -239,7 +252,7 @@
                 <div class="form-group">
                     <label>Mapping JSON</label>
                     <textarea id="ev_map" style="width:100%; height:160px; padding:10px; border:2px solid #D4A574; border-radius:8px; background:#fffaf1;"></textarea>
-                    <div class="row" style="gap:8px; margin-top:6px;">
+                    <div class="row" style="gap:8px; margin-top:6px">
                         <button class="btn" id="ev_map_load">Load Current</button>
                         <button class="btn secondary" id="ev_map_save">Save Mapping</button>
                         <button class="btn" id="ev_map_defaults">Defaults</button>
@@ -253,40 +266,40 @@
         <div id="tab-recipes" class="tab-content">
             <div class="card">
                 <h2>Recipes Manager</h2>
-                <div class="row" style="gap:8px; align-items:flex-end;">
-                    <div class="form-group" style="flex:2; min-width:200px;">
+                <div class="row" style="gap:8px; align-items:flex-end">
+                    <div class="form-group" style="flex:2; min-width:200px">
                         <label>Title</label>
                         <input id="rc_title" placeholder="e.g., Classic Chocolate Chip Cookies">
                     </div>
-                    <div class="form-group" style="flex:2; min-width:220px;">
+                    <div class="form-group" style="flex:2; min-width:220px">
                         <label>URL (optional)</label>
                         <input id="rc_url" placeholder="https://...">
                     </div>
-                    <div class="form-group" style="flex:3; min-width:260px;">
+                    <div class="form-group" style="flex:3; min-width:260px">
                         <label>Description (optional)</label>
                         <input id="rc_desc" placeholder="Short description">
                     </div>
-                    <div class="form-group" style="width:110px;">
+                    <div class="form-group" style="width:110px">
                         <label>Order</label>
                         <input id="rc_ord" type="number" value="0">
                     </div>
-                    <div class="form-group" style="width:140px;">
+                    <div class="form-group" style="width:140px">
                         <label>Visible</label>
                         <select id="rc_visible"><option value="true">Yes</option><option value="false">No</option></select>
                     </div>
                     <button class="btn secondary" id="rc_add">Add</button>
                 </div>
-                <div class="row" style="margin-top:10px; align-items:flex-start; gap:10px;">
-                    <div class="form-group" style="flex:1; min-width:260px;">
+                <div class="row" style="margin-top:10px; align-items:flex-start; gap:10px">
+                    <div class="form-group" style="flex:1; min-width:260px">
                         <label>Bulk Import (JSON array or lines: Title|URL|Description)</label>
                         <textarea id="rc_bulk" style="width:100%; height:120px; padding:10px; border:2px solid #D4A574; border-radius:8px; background:#fffaf1;"></textarea>
-                        <div class="row" style="gap:8px; margin-top:6px;">
+                        <div class="row" style="gap:8px; margin-top:6px">
                             <button class="btn" id="rc_bulk_btn">Import</button>
                             <button class="btn secondary" id="rc_bulk_demo">Fill Demo</button>
                         </div>
                     </div>
                 </div>
-                <div style="margin-top:12px;">
+                <div style="margin-top:12px">
                     <table id="rc_table">
                         <thead>
                             <tr>
@@ -475,6 +488,80 @@
         // Initial
         function init(){ updateCallback(); loadEvMap(); }
         init();
+
+        // Feature flags (toggles)
+        const defaultFlagKeys = [
+            'core.__all__','commands.__all__','games.__all__','economy.__all__',
+            'core.participation_xp',
+            'commands.recipe','commands.bakeoff','commands.ovenstatus','commands.leaderboard','commands.guess','commands.oventrivia','commands.seasonal','commands.setseason','commands.redeem','commands.fight','commands.accept','commands.level','commands.shop','commands.buy','commands.daily','commands.hourly','commands.tokens','commands.gift','commands.work',
+            'games.guess_game','games.trivia_game','games.seasonal_events','games.bread_fights',
+            'economy.shop','economy.purchases','economy.daily','economy.hourly','economy.work','economy.gifting'
+        ];
+        let featureFlags = {};
+        function renderFlags(){
+            const host = document.getElementById('flags-list');
+            host.innerHTML = '';
+            const keys = Array.from(new Set([...defaultFlagKeys, ...Object.keys(featureFlags)])).sort();
+            keys.forEach(k => {
+                const v = (typeof featureFlags[k] === 'boolean') ? featureFlags[k] : true;
+                const wrap = document.createElement('div');
+                wrap.className = 'form-group';
+                wrap.style.minWidth = '240px';
+                wrap.innerHTML = `
+                    <label style="display:flex;justify-content:space-between;align-items:center;gap:8px;">
+                        <span>${k}</span>
+                        <input type="checkbox" class="flag-toggle" data-k="${k}" ${v? 'checked':''} />
+                    </label>`;
+                host.appendChild(wrap);
+            });
+            // Add custom key input
+            const custom = document.createElement('div');
+            custom.className = 'form-group';
+            custom.style.minWidth = '260px';
+            custom.innerHTML = `
+                <label>Add custom key</label>
+                <div class="row" style="gap:6px;">
+                    <input id="flag-new-key" placeholder="e.g., commands.mycustom">
+                    <select id="flag-new-val"><option value="true">Enabled</option><option value="false">Disabled</option></select>
+                    <button class="btn" id="flag-add-btn">Add</button>
+                </div>`;
+            host.appendChild(custom);
+            document.getElementById('flag-add-btn').addEventListener('click', ()=>{
+                const k = document.getElementById('flag-new-key').value.trim();
+                const v = document.getElementById('flag-new-val').value === 'true';
+                if(!k) return;
+                featureFlags[k] = v;
+                renderFlags();
+            });
+        }
+        async function loadFlags(){
+            try{
+                const r = await fetch('/api/feature-flags');
+                const d = await r.json();
+                featureFlags = d.flags || {};
+            }catch{ featureFlags = {}; }
+            renderFlags();
+        }
+        async function saveFlags(){
+            // Read current state
+            const toggles = document.querySelectorAll('#flags-list .flag-toggle');
+            const out = {};
+            toggles.forEach(chk=>{ out[chk.dataset.k] = chk.checked; });
+            const r = await fetch('/api/feature-flags', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ flags: out }) });
+            const d = await r.json();
+            showMessage(d.message || (d.success? 'Saved toggles':'Failed'), d.success? 'success':'error');
+            if(d.success){ featureFlags = out; }
+        }
+        function flagDefaults(){ featureFlags = {}; renderFlags(); }
+        document.getElementById('btn-flags-reload').addEventListener('click', loadFlags);
+        document.getElementById('btn-flags-save').addEventListener('click', saveFlags);
+        document.getElementById('btn-flags-defaults').addEventListener('click', flagDefaults);
+
+        // Ensure flags are loaded when opening Config tab
+        // Existing tab switcher already defined above; extend init
+        const _old_init = init;
+        function init(){ _old_init(); loadFlags(); }
+        window.init = init;
     </script>
 </body>
 </html>

@@ -362,6 +362,56 @@ def set_metadata_api():
         logger.exception('GUI: metadata set failed')
         return jsonify({ 'success': False, 'message': str(e) }), 500
 
+@app.get('/api/feature-flags')
+def get_feature_flags():
+    from .storage import Storage
+    try:
+        store = Storage()
+        async def _read():
+            await store.init()
+            return await store.get_metadata('feature_flags')
+        loop = asyncio.new_event_loop()
+        try:
+            asyncio.set_event_loop(loop)
+            raw = loop.run_until_complete(_read())
+        finally:
+            loop.close()
+        data = {}
+        if raw:
+            try:
+                data = json.loads(raw)
+            except Exception:
+                data = {}
+        return jsonify({'success': True, 'flags': data})
+    except Exception as e:
+        logger.exception('GUI: get_feature_flags failed')
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+@app.post('/api/feature-flags')
+def set_feature_flags():
+    from .storage import Storage
+    try:
+        payload = request.get_json(silent=True) or {}
+        flags = payload.get('flags') or {}
+        if not isinstance(flags, dict):
+            return jsonify({'success': False, 'message': 'flags must be an object'}), 400
+        # Save as JSON string in metadata
+        store = Storage()
+        async def _write():
+            await store.init()
+            await store.set_metadata('feature_flags', json.dumps(flags))
+        loop = asyncio.new_event_loop()
+        try:
+            asyncio.set_event_loop(loop)
+            loop.run_until_complete(_write())
+        finally:
+            loop.close()
+        logger.info('GUI: feature_flags updated: %d keys', len(flags))
+        return jsonify({'success': True, 'message': 'Feature flags saved'})
+    except Exception as e:
+        logger.exception('GUI: set_feature_flags failed')
+        return jsonify({'success': False, 'message': str(e)}), 500
+
 def main():
     print("BakeBot Web GUI")
     print("=================")

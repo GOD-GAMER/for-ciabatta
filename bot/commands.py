@@ -4,6 +4,7 @@ from typing import Dict, Any, Optional
 import humanize
 import time
 import logging
+import json
 
 class BakeryShop:
     """Baking-themed shop system for token economy"""
@@ -129,6 +130,80 @@ class CommandHandler:
             'Double XP (5 min)': 'doublexp',
             'Bread Fight': 'breadfight'
         }
+        
+        # Feature flags cache
+        self._feature_flags: Dict[str, bool] = {}
+        self._flags_loaded_at: float = 0.0
+        self._flags_ttl_sec: int = 10
+
+    def _default_feature_flags(self) -> Dict[str, bool]:
+        # Group toggles (apply when specific key not set)
+        flags = {
+            'core.__all__': True,
+            'commands.__all__': True,
+            'games.__all__': True,
+            'economy.__all__': True,
+            # Core behaviors
+            'core.participation_xp': True,
+        }
+        # Command toggles
+        for k in (
+            'recipe','bakeoff','ovenstatus','leaderboard','guess','oventrivia','seasonal','setseason',
+            'redeem','fight','accept','level','shop','buy','daily','hourly','tokens','gift','work'
+        ):
+            flags[f'commands.{k}'] = True
+        # Game toggles (duplicate of some commands, used for clarity)
+        for k in ('guess_game','trivia_game','seasonal_events','bread_fights'):
+            flags[f'games.{k}'] = True
+        # Economy toggles
+        for k in ('shop','purchases','daily','hourly','work','gifting'):
+            flags[f'economy.{k}'] = True
+        return flags
+
+    async def _load_feature_flags(self):
+        try:
+            raw = await self.storage.get_metadata('feature_flags')
+            defaults = self._default_feature_flags()
+            if raw:
+                data = json.loads(raw)
+                if isinstance(data, dict):
+                    defaults.update({k: bool(v) for k, v in data.items()})
+            self._feature_flags = defaults
+            self._flags_loaded_at = time.time()
+            self.logger.info('Feature flags loaded: %d entries', len(self._feature_flags))
+        except Exception:
+            self.logger.exception('Failed to load feature flags; using defaults')
+            self._feature_flags = self._default_feature_flags()
+            self._flags_loaded_at = time.time()
+
+    async def feature_enabled(self, key: str) -> bool:
+        # Lazy-refresh flags
+        now = time.time()
+        if not self._feature_flags or (now - self._flags_loaded_at) > self._flags_ttl_sec:
+            await self._load_feature_flags()
+        # Exact key
+        if key in self._feature_flags:
+            return self._feature_flags.get(key, True)
+        # Group fallback based on prefix
+        if key.startswith('commands.'):
+            return self._feature_flags.get('commands.__all__', True)
+        if key.startswith('games.'):
+            return self._feature_flags.get('games.__all__', True)
+        if key.startswith('economy.'):
+            return self._feature_flags.get('economy.__all__', True)
+        if key.startswith('core.'):
+            return self._feature_flags.get('core.__all__', True)
+        return True
+
+    async def _guard(self, ctx, key: str, label: str) -> bool:
+        """Returns True if allowed; otherwise sends a disabled message and returns False."""
+        if await self.feature_enabled(key):
+            return True
+        try:
+            await ctx.send(f'{label} is currently disabled by the broadcaster.')
+        except Exception:
+            pass
+        return False
 
     async def handle(self, ctx, author: str, content: str):
         # Global per-user command cooldown to mitigate spam
@@ -145,46 +220,76 @@ class CommandHandler:
         args = parts[1:]
         self.logger.info('Command %s by %s args=%s', cmd, author, args)
         
-        # Existing commands
+        # Existing commands (with feature flags)
         if cmd == '!recipe':
+            if not await self._guard(ctx, 'commands.recipe', '!recipe'): return
             await self.cmd_recipe(ctx)
         elif cmd == '!bakeoff':
+            if not await self._guard(ctx, 'commands.bakeoff', '!bakeoff'): return
             await self.cmd_bakeoff(ctx)
         elif cmd == '!ovenstatus':
+            if not await self._guard(ctx, 'commands.ovenstatus', '!ovenstatus'): return
             await self.cmd_ovenstatus(ctx)
         elif cmd == '!leaderboard':
+            if not await self._guard(ctx, 'commands.leaderboard', '!leaderboard'): return
             await self.cmd_leaderboard(ctx)
         elif cmd == '!guess':
+            if not await self._guard(ctx, 'commands.guess', '!guess'): return
+            if not await self._guard(ctx, 'games.guess_game', 'Guess game'): return
             await self.games.start_guess_ingredient(ctx)
         elif cmd == '!oventrivia':
+            if not await self._guard(ctx, 'commands.oventrivia', '!oventrivia'): return
+            if not await self._guard(ctx, 'games.trivia_game', 'Trivia game'): return
             await self.games.start_oven_timer_trivia(ctx)
         elif cmd == '!seasonal':
+            if not await self._guard(ctx, 'commands.seasonal', '!seasonal'): return
+            if not await self._guard(ctx, 'games.seasonal_events', 'Seasonal events'): return
             await self.games.start_seasonal_event(ctx)
         elif cmd == '!setseason':
+            if not await self._guard(ctx, 'commands.setseason', '!setseason'): return
             await self.cmd_setseason(ctx, author, args)
         elif cmd == '!redeem':
+            if not await self._guard(ctx, 'commands.redeem', '!redeem'): return
             await self.cmd_redeem(ctx, author, args)
         elif cmd == '!fight':
+            if not await self._guard(ctx, 'commands.fight', '!fight'): return
+            if not await self._guard(ctx, 'games.bread_fights', 'Bread fights'): return
             await self.cmd_fight(ctx, author, args)
         elif cmd == '!accept':
+            if not await self._guard(ctx, 'commands.accept', '!accept'): return
+            if not await self._guard(ctx, 'games.bread_fights', 'Bread fights'): return
             await self.cmd_accept_fight(ctx, author)
         elif cmd == '!level':
+            if not await self._guard(ctx, 'commands.level', '!level'): return
             await self.cmd_level(ctx, author, args)
         
         # New token economy commands
         elif cmd == '!shop':
+            if not await self._guard(ctx, 'commands.shop', '!shop'): return
+            if not await self._guard(ctx, 'economy.shop', 'Shop'): return
             await self.cmd_shop(ctx, author, args)
         elif cmd == '!buy':
+            if not await self._guard(ctx, 'commands.buy', '!buy'): return
+            if not await self._guard(ctx, 'economy.purchases', 'Purchases'): return
             await self.cmd_buy(ctx, author, args)
         elif cmd == '!daily':
+            if not await self._guard(ctx, 'commands.daily', '!daily'): return
+            if not await self._guard(ctx, 'economy.daily', 'Daily bonus'): return
             await self.cmd_daily(ctx, author)
         elif cmd == '!hourly':
+            if not await self._guard(ctx, 'commands.hourly', '!hourly'): return
+            if not await self._guard(ctx, 'economy.hourly', 'Hourly bonus'): return
             await self.cmd_hourly(ctx, author)
         elif cmd == '!tokens':
+            if not await self._guard(ctx, 'commands.tokens', '!tokens'): return
             await self.cmd_tokens(ctx, author, args)
         elif cmd == '!gift':
+            if not await self._guard(ctx, 'commands.gift', '!gift'): return
+            if not await self._guard(ctx, 'economy.gifting', 'Gifting'): return
             await self.cmd_gift_tokens(ctx, author, args)
         elif cmd == '!work':
+            if not await self._guard(ctx, 'commands.work', '!work'): return
+            if not await self._guard(ctx, 'economy.work', 'Work'): return
             await self.cmd_work(ctx, author)
 
     async def cmd_shop(self, ctx, author: str, args):
