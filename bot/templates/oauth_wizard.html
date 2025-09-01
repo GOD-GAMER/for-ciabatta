@@ -6,200 +6,61 @@
     <title>BakeBot - OAuth Wizard</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-            min-height: 100vh; color: #333;
-        }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); min-height: 100vh; color: #333; }
         .container { max-width: 800px; margin: 0 auto; padding: 20px; }
-        .header {
-            background: linear-gradient(135deg, #F5DEB3 0%, #D4A574 100%);
-            padding: 20px; border-radius: 12px; margin-bottom: 20px; text-align: center;
-        }
-        .header h1 { color: #8B4513; font-size: 2.5em; margin-bottom: 10px; }
+        .header { background: linear-gradient(135deg, #F5DEB3 0%, #D4A574 100%); padding: 20px; border-radius: 12px; margin-bottom: 20px; text-align: center; }
+        .header h1 { color: #8B4513; font-size: 2.0em; margin-bottom: 8px; }
         .back-link { color: #8B4513; text-decoration: none; font-weight: bold; }
-        .wizard-steps { display: flex; justify-content: space-between; margin-bottom: 30px; flex-wrap: wrap; }
-        .step {
-            flex: 1; text-align: center; padding: 10px; margin: 5px; background: #e0e0e0;
-            border-radius: 8px; font-weight: bold; min-width: 120px;
-        }
-        .step.active { background: #D4A574; color: white; }
-        .step.completed { background: #4CAF50; color: white; }
-        .wizard-content { background: white; border-radius: 12px; padding: 30px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        .step-content { display: none; }
-        .step-content.active { display: block; }
-        .step-content h2 { color: #8B4513; margin-bottom: 20px; font-size: 1.8em; }
-        .step-content ol { margin-bottom: 20px; padding-left: 20px; }
-        .step-content li { margin-bottom: 10px; line-height: 1.6; }
-        .form-group { margin-bottom: 20px; }
+        .wizard-content { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .form-group { margin-bottom: 16px; }
         .form-group label { display: block; margin-bottom: 8px; font-weight: bold; color: #8B4513; }
         .form-group input { width: 100%; padding: 12px; border: 2px solid #D4A574; border-radius: 6px; font-size: 16px; }
-        .btn { background: #4CAF50; color: white; padding: 12px 24px; border: none; border-radius: 6px; cursor: pointer; margin-right: 10px; }
-        .btn.primary { background: #D4A574; }
-        .btn.info { background: #2196F3; }
-        .wizard-nav { display: flex; justify-content: space-between; margin-top: 30px; }
+        .btn { background: #D4A574; color: white; padding: 10px 16px; border: none; border-radius: 6px; cursor: pointer; }
         .message { padding: 12px; margin: 15px 0; border-radius: 6px; display: none; }
         .message.success { background: #d4edda; color: #155724; }
         .message.error { background: #f8d7da; color: #721c24; }
+        .row { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
             <h1>OAuth Setup Wizard</h1>
-            <a href="/" class="back-link">? Back to Dashboard</a>
+            <a href="/" class="back-link">← Back to Dashboard</a>
         </div>
-        
-        <div class="wizard-steps">
-            <div class="step active" data-step="1">1. Create App</div>
-            <div class="step" data-step="2">2. Client ID</div>
-            <div class="step" data-step="3">3. Authorize</div>
-            <div class="step" data-step="4">4. Save Token</div>
-        </div>
-        
         <div class="wizard-content">
-            <div class="step-content active" data-step="1">
-                <h2>Create Twitch Application</h2>
-                <ol>
-                    <li>Go to the <a href="https://dev.twitch.tv/console/apps" target="_blank">Twitch Developer Console</a></li>
-                    <li>Click "Register Your Application"</li>
-                    <li>Fill out the form:
-                        <ul>
-                            <li><strong>Name:</strong> Your Bot Name (e.g., "MyBakeBot")</li>
-                            <li><strong>OAuth Redirect URLs:</strong> https://localhost</li>
-                            <li><strong>Category:</strong> Chat Bot</li>
-                        </ul>
-                    </li>
-                    <li>Click "Create" to create your application</li>
-                </ol>
-                <button class="btn info" onclick="window.open('https://dev.twitch.tv/console/apps', '_blank')">
-                    Open Developer Console
-                </button>
+            <p>1) Create a Twitch application if you don't have one yet: <a href="https://dev.twitch.tv/console/apps" target="_blank">Twitch Developer Console</a></p>
+            <p>2) Paste your Twitch Client ID:</p>
+            <div class="form-group"><input id="client-id" placeholder="Client ID"></div>
+            <p>3) Click "Open Auth". After you authorize, the token will be captured automatically and saved.</p>
+            <div class="row">
+                <button class="btn" id="btn-open-auth">Open Auth</button>
+                <button class="btn" id="btn-copy-url" disabled>Copy URL</button>
             </div>
-            
-            <div class="step-content" data-step="2">
-                <h2>Enter Client ID</h2>
-                <p>Copy the Client ID from your Twitch application and paste it below:</p>
-                <div class="form-group">
-                    <label for="client-id">Client ID:</label>
-                    <input type="text" id="client-id" placeholder="Enter your Client ID here">
-                </div>
-            </div>
-            
-            <div class="step-content" data-step="3">
-                <h2>Get Authorization</h2>
-                <ol>
-                    <li>Click "Generate URL" below to create the OAuth URL</li>
-                    <li>Click "Open in Browser" to go to the authorization page</li>
-                    <li>Sign in with your <strong>BOT account</strong> (not your main account)</li>
-                    <li>Click "Authorize" to grant permissions</li>
-                    <li>Copy the <code>access_token</code> from the URL (after #access_token=)</li>
-                </ol>
-                
-                <button class="btn primary" id="generate-url">Generate URL</button>
-                <button class="btn info" id="open-browser" disabled>Open in Browser</button>
-                <button class="btn" id="copy-url" disabled>Copy URL</button>
-                
-                <div class="form-group" style="margin-top: 20px;">
-                    <label for="oauth-url">OAuth URL:</label>
-                    <input type="text" id="oauth-url" readonly placeholder="Click 'Generate URL' first">
-                </div>
-            </div>
-            
-            <div class="step-content" data-step="4">
-                <h2>Save Access Token</h2>
-                <p>Paste the access_token from the URL (the part after #access_token=):</p>
-                <div class="form-group">
-                    <label for="access-token">Access Token:</label>
-                    <input type="password" id="access-token" placeholder="Enter the access token here">
-                </div>
-                <button class="btn" id="save-token">Save Token & Return to Dashboard</button>
-            </div>
-            
-            <div id="message" class="message"></div>
-            
-            <div class="wizard-nav">
-                <button class="btn" id="prev-btn" onclick="previousStep()" disabled>Previous</button>
-                <button class="btn primary" id="next-btn" onclick="nextStep()">Next</button>
-            </div>
+            <div class="form-group"><label>Auth URL</label><input id="oauth-url" readonly></div>
+            <div id="msg" class="message"></div>
         </div>
     </div>
-    
+
     <script>
-        let currentStep = 1;
-        const totalSteps = 4;
-        
-        function showStep(step) {
-            document.querySelectorAll('.step-content').forEach(el => el.classList.remove('active'));
-            document.querySelector(`.step-content[data-step="${step}"]`).classList.add('active');
-            
-            document.querySelectorAll('.step').forEach((el, index) => {
-                el.classList.remove('active', 'completed');
-                if (index + 1 < step) el.classList.add('completed');
-                else if (index + 1 === step) el.classList.add('active');
-            });
-            
-            document.getElementById('prev-btn').disabled = (step === 1);
-            document.getElementById('next-btn').disabled = (step === totalSteps);
+        const msgEl = document.getElementById('msg');
+        function showMsg(t, type='success'){ msgEl.textContent=t; msgEl.className=`message ${type}`; msgEl.style.display='block'; setTimeout(()=>msgEl.style.display='none', 4000); }
+        function buildUrl(){
+            const cid = document.getElementById('client-id').value.trim();
+            if(!cid){ showMsg('Enter Client ID', 'error'); return null; }
+            const redirect = encodeURIComponent('http://127.0.0.1:5000/oauth-callback');
+            const scopes = encodeURIComponent('chat:read chat:edit');
+            return `https://id.twitch.tv/oauth2/authorize?client_id=${cid}&redirect_uri=${redirect}&response_type=token&scope=${scopes}&force_verify=true`;
         }
-        
-        function nextStep() { if (currentStep < totalSteps) { currentStep++; showStep(currentStep); } }
-        function previousStep() { if (currentStep > 1) { currentStep--; showStep(currentStep); } }
-        
-        function showMessage(text, type = 'success') {
-            const messageEl = document.getElementById('message');
-            messageEl.textContent = text; messageEl.className = `message ${type}`;
-            messageEl.style.display = 'block';
-            setTimeout(() => messageEl.style.display = 'none', 5000);
-        }
-        
-        document.getElementById('generate-url').addEventListener('click', function() {
-            const clientId = document.getElementById('client-id').value.trim();
-            if (!clientId) { showMessage('Please enter Client ID first!', 'error'); return; }
-            
-            const url = `https://id.twitch.tv/oauth2/authorize?client_id=${clientId}&redirect_uri=https://localhost&response_type=token&scope=chat:read+chat:edit&force_verify=true`;
-            document.getElementById('oauth-url').value = url;
-            document.getElementById('open-browser').disabled = false;
-            document.getElementById('copy-url').disabled = false;
+        document.getElementById('btn-open-auth').addEventListener('click', function(){
+            const u = buildUrl(); if(!u) return; document.getElementById('oauth-url').value = u; window.open(u, '_blank'); showMsg('Opened Twitch Auth. Complete it to auto-save your token.');
+            document.getElementById('btn-copy-url').disabled = false;
         });
-        
-        document.getElementById('open-browser').addEventListener('click', function() {
-            const url = document.getElementById('oauth-url').value;
-            if (url) window.open(url, '_blank');
-        });
-        
-        document.getElementById('copy-url').addEventListener('click', function() {
-            const urlInput = document.getElementById('oauth-url');
-            urlInput.select(); document.execCommand('copy');
-            showMessage('URL copied to clipboard!');
-        });
-        
-        document.getElementById('save-token').addEventListener('click', async function() {
-            const token = document.getElementById('access-token').value.trim();
-            if (!token) { showMessage('Please enter the access token!', 'error'); return; }
-            
-            const finalToken = token.startsWith('oauth:') ? token : `oauth:${token}`;
-            
-            try {
-                const response = await fetch('/api/save-config', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ 'TWITCH_TOKEN': finalToken })
-                });
-                
-                const result = await response.json();
-                if (result.success) {
-                    showMessage('Token saved successfully! Redirecting to dashboard...');
-                    setTimeout(() => window.location.href = '/', 2000);
-                } else {
-                    showMessage(result.message, 'error');
-                }
-            } catch (error) {
-                showMessage('Error saving token: ' + error.message, 'error');
-            }
-        });
-        
-        showStep(currentStep);
+        document.getElementById('btn-copy-url').addEventListener('click', function(){ const el = document.getElementById('oauth-url'); el.select(); document.execCommand('copy'); showMsg('Auth URL copied'); });
+        // If redirected here after capture
+        const params = new URLSearchParams(location.search);
+        if(params.get('captured')==='1'){ showMsg('Token captured and saved!', 'success'); }
+        else if(params.get('captured')==='0'){ /* no-op */ }
     </script>
 </body>
 </html>

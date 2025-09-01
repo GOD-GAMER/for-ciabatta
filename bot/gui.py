@@ -77,6 +77,7 @@ for noisy in (
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 DOCS_PATH = os.path.join(PROJECT_ROOT, 'docs')
 DOCS_DIR = Path(DOCS_PATH)
+ENV_PATH = os.path.abspath('.env')
 
 # Create Flask app
 app = Flask(__name__, 
@@ -155,6 +156,50 @@ def serve_docs(filename):
         pass
     # Not found
     return ('Not Found', 404)
+
+# OAuth callback to capture access_token from fragment
+@app.route('/oauth-callback')
+def oauth_callback():
+    # Serve a tiny page that posts the access_token to our API then redirects back to wizard
+    return '''<!DOCTYPE html><html><head><meta charset="utf-8"><title>OAuth Callback</title></head>
+    <body><p>Completing OAuth...</p>
+    <script>
+    (function(){
+      try {
+        var hash = window.location.hash || '';
+        var m = /access_token=([^&]+)/.exec(hash);
+        if (m && m[1]) {
+          var token = m[1];
+          fetch('/api/oauth-captured-token', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ token: token })
+          }).then(function(){ window.location = '/oauth-wizard?captured=1'; })
+          .catch(function(){ window.location = '/oauth-wizard?captured=0'; });
+        } else {
+          window.location = '/oauth-wizard?captured=0';
+        }
+      } catch(e){ window.location = '/oauth-wizard?captured=0'; }
+    })();
+    </script></body></html>'''
+
+@app.route('/api/oauth-captured-token', methods=['POST','GET'])
+def oauth_captured_token():
+    if request.method == 'POST':
+        data = request.get_json(silent=True) or {}
+        token = (data.get('token') or '').strip()
+        if not token:
+            return jsonify({ 'success': False, 'error': 'no token' }), 400
+        final_token = token if token.startswith('oauth:') else f'oauth:{token}'
+        try:
+            set_key(ENV_PATH, 'TWITCH_TOKEN', final_token)
+            load_dotenv(override=True)
+            logger.info('GUI: OAuth token captured and saved')
+            return jsonify({ 'success': True })
+        except Exception as e:
+            logger.exception('GUI: failed to save OAuth token')
+            return jsonify({ 'success': False, 'error': str(e) }), 500
+    # GET can return whether a token is present
+    return jsonify({ 'token_set': bool(os.getenv('TWITCH_TOKEN','')) })
 
 # Lightweight GUI click logging endpoint
 @app.post('/api/log-ui')
