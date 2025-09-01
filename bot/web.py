@@ -228,6 +228,34 @@ async def create_app(db_path: str):
             await db.commit()
         return web.json_response({'success': True})
 
+    async def bulk_recipes(request):
+        try:
+            payload = await request.json()
+        except Exception:
+            return web.json_response({'error': 'Invalid JSON'}, status=400)
+        items = payload if isinstance(payload, list) else payload.get('data')
+        if not isinstance(items, list):
+            return web.json_response({'error': 'Expected list of recipes'}, status=400)
+        inserted = 0
+        async with aiosqlite.connect(db_path) as db:
+            await db.execute('BEGIN')
+            try:
+                for it in items:
+                    title = (it.get('title') or '').strip()
+                    if not title:
+                        continue
+                    url = (it.get('url') or '').strip()
+                    desc = (it.get('description') or '').strip()
+                    vis = 1 if str(it.get('visible', '1')).lower() in ('1','true','yes','on') else 0
+                    ordv = int(it.get('ord', 0) or 0)
+                    await db.execute('INSERT INTO recipes(title,url,description,visible,ord) VALUES(?,?,?,?,?)', (title, url, desc, vis, ordv))
+                    inserted += 1
+                await db.commit()
+            except Exception:
+                await db.rollback()
+                raise
+        return web.json_response({'success': True, 'inserted': inserted})
+
     async def qr(request):
         url = request.query.get('url', 'https://twitch.tv')
         logger.debug('GET /qr url=%s', url)
@@ -247,6 +275,7 @@ async def create_app(db_path: str):
         web.post('/api/recipes', create_recipe),
         web.put('/api/recipes/{rid}', update_recipe),
         web.delete('/api/recipes/{rid}', delete_recipe),
+        web.post('/api/recipes/bulk', bulk_recipes),
     ])
 
     return app
