@@ -54,6 +54,14 @@ class BakeBot(tcommands.Bot):
         })
         self.logger.info('Bot initialized; prefix=%s channel=%s', self._prefix, channel)
 
+        # Default EventSub mapping + cooldowns (can be overridden via metadata)
+        self.event_map_defaults = {
+            'channel.follow': { 'action': 'xp', 'amount': 10, 'cooldown': 60 },
+            'channel.subscribe': { 'action': 'tokens', 'amount': 20, 'cooldown': 30 },
+            'channel.cheer': { 'action': 'tokens_per_100_bits', 'amount': 5, 'cooldown': 5 },
+            'channel.raid': { 'action': 'raid_bonus', 'amount': 50, 'cooldown': 300 },
+        }
+
     async def event_ready(self):
         self.logger.info('Logged in as %s', self.nick)
         await self.storage.init()
@@ -66,7 +74,7 @@ class BakeBot(tcommands.Bot):
         # Optionally start EventSub
         if os.getenv('ENABLE_EVENTSUB', 'false').lower() in ('1','true','yes'):
             try:
-                self.eventsub = EventSubServer(self.storage, self.on_channel_point_redeem)
+                self.eventsub = EventSubServer(self.storage, self.on_channel_point_redeem, self.on_eventsub_event)
                 await self.eventsub.start(host='127.0.0.1', port=int(os.getenv('EVENTSUB_PORT','8081')))
                 self.logger.info('EventSub server started')
             except Exception as e:
@@ -117,6 +125,48 @@ class BakeBot(tcommands.Bot):
             await self.command_handler.apply_reward(DummyCtx(), user.lower(), key)
         else:
             self.logger.warning('Unmapped reward title: %s', reward_title)
+
+    async def on_eventsub_event(self, sub_type: str, event: dict):
+        try:
+            # Load mapping from metadata (JSON), fallback to defaults
+            raw = await self.storage.get_metadata('eventsub_map')
+            mapping = self.event_map_defaults.copy()
+            if raw:
+                try:
+                    import json as _json
+                    mapping.update(_json.loads(raw))
+                except Exception:
+                    self.logger.warning('Invalid eventsub_map JSON in metadata')
+            cfg = mapping.get(sub_type)
+            if not cfg:
+                self.logger.debug('No mapping for sub_type=%s', sub_type)
+                return
+            cd_key = f"ev:{sub_type}"
+            if not self.cooldowns.check(cd_key, int(cfg.get('cooldown', 0) or 0)):
+                self.logger.info('Cooldown active for %s', sub_type)
+                return
+            action = cfg.get('action')
+            amount = int(cfg.get('amount', 0) or 0)
+            # Determine affected user(s)
+            user = (event.get('user_name') or event.get('from_broadcaster_user_name') or event.get('raider_user_name') or '').lower()
+            if action == 'xp' and user:
+                await self.command_handler.award_xp(user, amount)
+            elif action == 'tokens' and user:
+                await self.command_handler.award_tokens(user, amount)
+            elif action == 'tokens_per_100_bits' and user:
+                bits = int(event.get('bits', 0) or 0)
+                if bits > 0:
+                    tokens = (bits // 100) * max(1, amount)
+                    if tokens:
+                        await self.command_handler.award_tokens(user, tokens)
+            elif action == 'raid_bonus':
+                # Award to raider user and maybe all viewers later
+                if user:
+                    await self.command_handler.award_tokens(user, amount)
+            else:
+                self.logger.debug('Unknown action %s for %s', action, sub_type)
+        except Exception:
+            self.logger.exception('Failed to process EventSub event')
 
     async def start_web(self):
         try:

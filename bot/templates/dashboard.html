@@ -233,6 +233,20 @@
                     </div>
                 </form>
             </div>
+            <div class="card">
+                <h2>Event Mapping & Cooldowns</h2>
+                <p class="small">Map Twitch events to in-bot actions and set cooldowns to prevent spam.</p>
+                <div class="form-group">
+                    <label>Mapping JSON</label>
+                    <textarea id="ev_map" style="width:100%; height:160px; padding:10px; border:2px solid #D4A574; border-radius:8px; background:#fffaf1;"></textarea>
+                    <div class="row" style="gap:8px; margin-top:6px;">
+                        <button class="btn" id="ev_map_load">Load Current</button>
+                        <button class="btn secondary" id="ev_map_save">Save Mapping</button>
+                        <button class="btn" id="ev_map_defaults">Defaults</button>
+                    </div>
+                    <div class="small">Example: { "channel.follow": {"action":"xp","amount":10,"cooldown":60} }</div>
+                </div>
+            </div>
         </div>
 
         <!-- Recipes Tab -->
@@ -435,8 +449,31 @@
         document.getElementById('rc_bulk_btn').addEventListener('click', importBulk);
         document.getElementById('rc_bulk_demo').addEventListener('click', demoBulk);
 
+        // EventSub mapping load/save
+        async function loadEvMap(){
+            try{ const r = await fetch('/api/metadata?key=eventsub_map'); const d = await r.json(); document.getElementById('ev_map').value = d.value || ''; }catch{}
+        }
+        async function saveEvMap(){
+            let v = document.getElementById('ev_map').value.trim();
+            if(v){ try{ JSON.parse(v); }catch(e){ showMessage('Invalid JSON','error'); return; } }
+            const r = await fetch('/api/metadata', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ key:'eventsub_map', value: v }) });
+            const out = await r.json(); showMessage(out.message || (out.success?'Saved':'Failed'), out.success?'success':'error');
+        }
+        function fillEvDefaults(){
+            const def = {
+                "channel.follow": { "action":"xp", "amount":10, "cooldown":60 },
+                "channel.subscribe": { "action":"tokens", "amount":20, "cooldown":30 },
+                "channel.cheer": { "action":"tokens_per_100_bits", "amount":5, "cooldown":5 },
+                "channel.raid": { "action":"raid_bonus", "amount":50, "cooldown":300 }
+            };
+            document.getElementById('ev_map').value = JSON.stringify(def, null, 2);
+        }
+        document.getElementById('ev_map_load').addEventListener('click', loadEvMap);
+        document.getElementById('ev_map_save').addEventListener('click', saveEvMap);
+        document.getElementById('ev_map_defaults').addEventListener('click', fillEvDefaults);
+
         // Initial
-        function init(){ updateCallback(); }
+        function init(){ updateCallback(); loadEvMap(); }
         init();
     </script>
 </body>

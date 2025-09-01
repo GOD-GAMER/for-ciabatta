@@ -312,6 +312,56 @@ def open_leaderboard():
 def handle_connect():
     emit('status_update', {'status': bot_manager.status, 'message': f'Bot {bot_manager.status.title()}'})
 
+@app.get('/api/metadata')
+def get_metadata_api():
+    from .storage import Storage
+    key = request.args.get('key','')
+    if not key:
+        return jsonify({ 'success': False, 'message': 'key required' }), 400
+    try:
+        # read directly from DB through Storage to avoid race
+        import asyncio as _aio
+        store = Storage()
+        # Storage.init ensures tables; but we can just query
+        async def _read():
+            await store.init()
+            return await store.get_metadata(key)
+        loop = _aio.new_event_loop()
+        try:
+            _aio.set_event_loop(loop)
+            val = loop.run_until_complete(_read())
+        finally:
+            loop.close()
+        return jsonify({ 'success': True, 'key': key, 'value': val or '' })
+    except Exception as e:
+        logger.exception('GUI: metadata get failed')
+        return jsonify({ 'success': False, 'message': str(e) }), 500
+
+@app.post('/api/metadata')
+def set_metadata_api():
+    from .storage import Storage
+    data = request.get_json(silent=True) or {}
+    key = (data.get('key') or '').strip()
+    value = (data.get('value') or '')
+    if not key:
+        return jsonify({ 'success': False, 'message': 'key required' }), 400
+    try:
+        import asyncio as _aio
+        store = Storage()
+        async def _write():
+            await store.init()
+            await store.set_metadata(key, value)
+        loop = _aio.new_event_loop()
+        try:
+            _aio.set_event_loop(loop)
+            loop.run_until_complete(_write())
+        finally:
+            loop.close()
+        return jsonify({ 'success': True, 'message': 'Saved' })
+    except Exception as e:
+        logger.exception('GUI: metadata set failed')
+        return jsonify({ 'success': False, 'message': str(e) }), 500
+
 def main():
     print("BakeBot Web GUI")
     print("=================")

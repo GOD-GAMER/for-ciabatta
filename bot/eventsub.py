@@ -6,12 +6,13 @@ import asyncio
 import logging
 from aiohttp import web, ClientSession
 
-# Minimal EventSub handler: verifies Twitch signatures and dispatches channel point redemptions
+# Expanded EventSub handler: verifies Twitch signatures and dispatches notifications
 
 class EventSubServer:
-    def __init__(self, storage, redeem_handler):
+    def __init__(self, storage=None, redeem_handler=None, on_event=None):
         self.storage = storage
         self.redeem_handler = redeem_handler
+        self.on_event = on_event  # async callback(sub_type, event)
         self.secret = os.getenv('EVENTSUB_SECRET', 'changeme')
         self.session = None
         self._runner = None
@@ -56,9 +57,13 @@ class EventSubServer:
         if msg_type == 'notification':
             event = data.get('event', {})
             sub_type = data.get('subscription', {}).get('type')
-            self.logger.info('Notification type=%s user=%s', sub_type, event.get('user_name'))
-            if sub_type == 'channel.channel_points_custom_reward_redemption.add':
+            self.logger.info('Notification type=%s', sub_type)
+            # Channel points (legacy path)
+            if sub_type == 'channel.channel_points_custom_reward_redemption.add' and self.redeem_handler:
                 user = event.get('user_name', '')
                 reward = event.get('reward', {}).get('title', '')
                 asyncio.create_task(self.redeem_handler(user, reward))
+            # Generic dispatch
+            if self.on_event:
+                asyncio.create_task(self.on_event(sub_type, event))
         return web.Response(status=200)
