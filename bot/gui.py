@@ -11,6 +11,7 @@ import json
 import socket
 import re
 import requests
+from pathlib import Path
 
 from .bot import BakeBot
 from .logging_config import setup_logging
@@ -75,6 +76,7 @@ for noisy in (
 # Paths
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 DOCS_PATH = os.path.join(PROJECT_ROOT, 'docs')
+DOCS_DIR = Path(DOCS_PATH)
 
 # Create Flask app
 app = Flask(__name__, 
@@ -122,10 +124,37 @@ def public_ip():
         ip = ''
     return jsonify({ 'public_ip': ip })
 
+@app.route('/docs/')
+@app.route('/docs')
+def docs_index():
+    if not DOCS_DIR.exists():
+        return 'No docs available', 404
+    items = []
+    for p in sorted(DOCS_DIR.glob('*.md')):
+        items.append(f"<li><a href='/docs/{p.name}'>{p.name}</a></li>")
+    html = f"""
+    <html><head><title>Docs</title></head>
+    <body><h3>Documentation</h3><ul>{''.join(items) or '<li>No .md files</li>'}</ul></body></html>
+    """
+    return html
+
 @app.route('/docs/<path:filename>')
 def serve_docs(filename):
-    safe = os.path.normpath(filename).lstrip(os.sep)
-    return send_from_directory(DOCS_PATH, safe)
+    # Normalize and try to locate the file case-insensitively
+    name = os.path.normpath(filename).replace('\\', '/').lstrip('/')
+    cand = DOCS_DIR / name
+    if cand.exists():
+        return send_from_directory(DOCS_PATH, name)
+    # Case-insensitive lookup within docs dir (flat)
+    try:
+        lower = name.lower()
+        for p in DOCS_DIR.glob('*'):
+            if p.is_file() and p.name.lower() == lower:
+                return send_from_directory(DOCS_PATH, p.name)
+    except Exception:
+        pass
+    # Not found
+    return ('Not Found', 404)
 
 # Lightweight GUI click logging endpoint
 @app.post('/api/log-ui')

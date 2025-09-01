@@ -88,9 +88,9 @@
             <div class="card">
                 <h2>Quick Links</h2>
                 <div class="row" style="gap:8px;">
-                    <a class="btn secondary" href="/docs/SETUP.md" target="_blank">Setup Guide</a>
-                    <a class="btn secondary" href="/docs/PORT_FORWARDING.md" target="_blank">Port Forwarding</a>
-                    <a class="btn secondary" href="/docs/EVENTSUB.md" target="_blank">EventSub Guide</a>
+                    <a class="btn secondary quick-link" data-action="open-setup" href="/docs/SETUP.md" target="_blank">Setup Guide</a>
+                    <a class="btn secondary quick-link" data-action="open-port-forwarding" href="/docs/PORT_FORWARDING.md" target="_blank">Port Forwarding</a>
+                    <a class="btn secondary quick-link" data-action="open-eventsub" href="/docs/EVENTSUB.md" target="_blank">EventSub Guide</a>
                 </div>
             </div>
         </div>
@@ -246,6 +246,14 @@
                 document.getElementById(target).classList.add('active');
                 if (target === 'tab-network') { loadNetwork(); }
                 if (target === 'tab-eventsub') { updateCallback(); }
+            });
+        });
+
+        // Log quick link clicks without blocking navigation
+        document.querySelectorAll('a.quick-link').forEach(a => {
+            a.addEventListener('click', () => {
+                const payload = JSON.stringify({ action: a.dataset.action || 'quick-link', href: a.href });
+                try { navigator.sendBeacon('/api/log-ui', new Blob([payload], { type: 'application/json' })); } catch {}
             });
         });
 
