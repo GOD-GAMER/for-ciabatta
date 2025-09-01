@@ -27,7 +27,6 @@ class BotManager:
     def start_bot(self):
         if self.thread and self.thread.is_alive():
             return False
-        
         self.thread = threading.Thread(target=self._run_bot)
         self.thread.daemon = True
         self.thread.start()
@@ -52,7 +51,6 @@ class BotManager:
             self.status = "stopping"
             if self.socketio:
                 self.socketio.emit('status_update', {'status': 'stopping', 'message': 'Stopping...'})
-            
             asyncio.run_coroutine_threadsafe(self.bot.shutdown(), self.loop)
             self.status = "stopped"
             if self.socketio:
@@ -64,6 +62,15 @@ load_dotenv()
 # Setup logging
 setup_logging()
 logger = logging.getLogger('BakeBot.WebGUI')
+# Quiet noisy access logs; keep our app logs readable for troubleshooting
+for noisy in (
+    'werkzeug',
+    'geventwebsocket.handler',
+    'engineio.server',
+    'socketio.server',
+    'urllib3.connectionpool',
+):
+    logging.getLogger(noisy).setLevel(logging.WARNING)
 
 # Paths
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
@@ -75,14 +82,13 @@ app = Flask(__name__,
            static_folder=os.path.join(os.path.dirname(__file__), 'static'))
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'bakebot-secret-key-change-me')
 
-# Create SocketIO instance
-socketio = SocketIO(app, cors_allowed_origins="*")
+# Create SocketIO instance (suppress engineio/socketio internal logs)
+socketio = SocketIO(app, cors_allowed_origins="*", logger=False, engineio_logger=False)
 
 # Create bot manager
 bot_manager = BotManager(socketio)
 
 def _get_local_ipv4():
-    # UDP socket trick: no traffic is sent, but OS selects the egress interface
     try:
         with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
             s.connect(('8.8.8.8', 80))
@@ -91,7 +97,6 @@ def _get_local_ipv4():
                 return ip
     except Exception:
         pass
-    # Hostname lookup fallback
     try:
         hostname = socket.gethostname()
         ips = socket.gethostbyname_ex(hostname)[2]
@@ -104,14 +109,16 @@ def _get_local_ipv4():
 
 @app.route('/api/network-info')
 def network_info():
-    return jsonify({ 'local_ipv4': _get_local_ipv4() })
+    ip = _get_local_ipv4()
+    logger.debug('GUI: network-info local_ipv4=%s', ip)
+    return jsonify({ 'local_ipv4': ip })
 
 @app.route('/api/public-ip')
 def public_ip():
     try:
         ip = requests.get('https://api.ipify.org', timeout=5).text.strip()
     except Exception as e:
-        logger.warning('Failed to fetch public IP: %s', e)
+        logger.warning('GUI: public-ip fetch failed: %s', e)
         ip = ''
     return jsonify({ 'public_ip': ip })
 
@@ -119,6 +126,15 @@ def public_ip():
 def serve_docs(filename):
     safe = os.path.normpath(filename).lstrip(os.sep)
     return send_from_directory(DOCS_PATH, safe)
+
+# Lightweight GUI click logging endpoint
+@app.post('/api/log-ui')
+def log_ui():
+    data = request.get_json(silent=True) or {}
+    action = (data.get('action') or 'unknown').strip()
+    extra = {k: v for k, v in data.items() if k != 'action'}
+    logger.info('GUI click: %s %s', action, extra if extra else '')
+    return jsonify({'success': True})
 
 @app.route('/')
 def dashboard():
@@ -140,32 +156,26 @@ def dashboard():
 
 @app.route('/logs')
 def logs():
-    """Logs page"""
     return render_template('logs.html')
 
 @app.route('/users')
 def users():
-    """Users management page"""
     return render_template('users.html')
 
 @app.route('/games')
 def games():
-    """Games control page"""
     return render_template('games.html')
 
 @app.route('/shop')
 def shop():
-    """Bakery shop page"""
     return render_template('shop.html')
 
 @app.route('/oauth-wizard')
 def oauth_wizard():
-    """OAuth setup wizard"""
     return render_template('oauth_wizard.html')
 
 @app.route('/api/save-config', methods=['POST'])
 def save_config():
-    """Save configuration to .env file"""
     try:
         data = request.json or {}
         env_path = os.path.abspath('.env')
@@ -178,34 +188,37 @@ def save_config():
             if key in allowed:
                 set_key(env_path, key, str(value))
         load_dotenv(override=True)
+        logger.info('GUI: save-config keys=%s', [k for k in data.keys() if k in allowed])
         return jsonify({'success': True, 'message': 'Configuration saved successfully'})
     except Exception as e:
+        logger.exception('GUI: save-config failed')
         return jsonify({'success': False, 'message': str(e)})
 
 @app.route('/api/start-bot', methods=['POST'])
 def start_bot():
-    """Start the bot"""
     try:
+        logger.info('GUI: start-bot requested')
         success = bot_manager.start_bot()
         if success:
             return jsonify({'success': True, 'message': 'Bot starting...'})
         else:
             return jsonify({'success': False, 'message': 'Bot already running'})
     except Exception as e:
+        logger.exception('GUI: start-bot failed')
         return jsonify({'success': False, 'message': str(e)})
 
 @app.route('/api/stop-bot', methods=['POST'])
 def stop_bot():
-    """Stop the bot"""
     try:
+        logger.info('GUI: stop-bot requested')
         bot_manager.stop_bot()
         return jsonify({'success': True, 'message': 'Bot stopping...'})
     except Exception as e:
+        logger.exception('GUI: stop-bot failed')
         return jsonify({'success': False, 'message': str(e)})
 
 @app.route('/api/open-leaderboard', methods=['POST'])
 def open_leaderboard():
-    """Open leaderboard in browser"""
     try:
         host = os.getenv('WEB_HOST', '127.0.0.1')
         port = os.getenv('WEB_PORT', '8080')
@@ -214,18 +227,18 @@ def open_leaderboard():
             url = f"{base.rstrip('/')}/leaderboard"
         else:
             url = f"http://{host}:{port}/leaderboard"
+        logger.info('GUI: open-leaderboard %s', url)
         webbrowser.open(url)
         return jsonify({'success': True, 'message': f'Opened {url}'})
     except Exception as e:
+        logger.exception('GUI: open-leaderboard failed')
         return jsonify({'success': False, 'message': str(e)})
 
 @socketio.on('connect')
 def handle_connect():
-    """Handle client connection"""
     emit('status_update', {'status': bot_manager.status, 'message': f'Bot {bot_manager.status.title()}'})
 
 def main():
-    """Run the web GUI"""
     print("BakeBot Web GUI")
     print("=================")
     print("Opening web interface...")
