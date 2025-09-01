@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# If version file already staged, skip auto-bump to avoid loops
+if git diff --cached --name-only | grep -q '^bot/__init__\.py$'; then
+  exit 0
+fi
+
+# Bump version
+if ! newver=$(python scripts/bump_version.py); then
+  echo "[pre-commit] bump_version failed" >&2
+  exit 1
+fi
+# Stage updated version file
+git add bot/__init__.py
+
+echo "[pre-commit] Version bumped to ${newver}"
+exit 0
