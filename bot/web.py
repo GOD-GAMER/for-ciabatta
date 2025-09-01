@@ -9,8 +9,24 @@ from datetime import datetime
 
 logger = logging.getLogger('BakeBot.Web')
 
+async def ensure_schema(db_path: str):
+    async with aiosqlite.connect(db_path) as db:
+        await db.execute(
+            'CREATE TABLE IF NOT EXISTS recipes ('
+            ' id INTEGER PRIMARY KEY AUTOINCREMENT,'
+            ' title TEXT NOT NULL,'
+            ' url TEXT DEFAULT "",'
+            ' description TEXT DEFAULT "",'
+            ' visible INTEGER DEFAULT 1,'
+            ' ord INTEGER DEFAULT 0,'
+            ' created_at INTEGER DEFAULT (strftime("%s","now"))'
+            ')'
+        )
+        await db.commit()
+
 async def create_app(db_path: str):
     app = web.Application()
+    await ensure_schema(db_path)
 
     async def leaderboard(request):
         logger.debug('GET /leaderboard')
@@ -34,7 +50,7 @@ async def create_app(db_path: str):
         </head>
         <body>
         <div class="container">
-        <h1>?? Bake-Off Leaderboard ??</h1>
+        <h1> ?? Bake-Off Leaderboard ??</h1>
         <ul>{items}</ul>
         <div class="refresh">
         <button onclick="location.reload()">Refresh</button>
@@ -47,30 +63,33 @@ async def create_app(db_path: str):
 
     async def recipe(request):
         logger.debug('GET /recipes')
-        html = """
+        async with aiosqlite.connect(db_path) as db:
+            async with db.execute('SELECT title, url, description FROM recipes WHERE visible=1 ORDER BY ord ASC, id ASC') as cur:
+                rows = await cur.fetchall()
+        cards = []
+        for title, url, desc in rows:
+            title_html = f"<a href='{url}' target='_blank'>{title}</a>" if url else title
+            desc_html = f"<p>{desc}</p>" if desc else ''
+            cards.append(f"<div class='recipe'><h3>{title_html}</h3>{desc_html}</div>")
+        items_html = "\n".join(cards) if cards else "<p>No recipes yet.</p>"
+        html = f"""
         <!DOCTYPE html>
         <html><head>
         <title>Recipes</title>
         <meta charset="utf-8">
         <style>
-        body { font-family: Arial, sans-serif; margin: 20px; background: #f5f5f5; }
-        .container { max-width: 800px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; }
-        h1 { color: #8b4513; text-align: center; }
-        .recipe { margin: 20px 0; padding: 15px; background: #fff3cd; border-radius: 5px; }
+        body {{ font-family: Arial, sans-serif; margin: 20px; background: #f5f5f5; }}
+        .container {{ max-width: 900px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; }}
+        h1 {{ color: #8b4513; text-align: center; }}
+        .recipe {{ margin: 20px 0; padding: 15px; background: #fff3cd; border-radius: 5px; border-left: 4px solid #d4a574; }}
+        a.btn {{ display:inline-block; padding:8px 12px; background:#d4a574; color:white; text-decoration:none; border-radius:6px }}
         </style>
         </head>
         <body>
         <div class="container">
-        <h1>?? Favorite Recipes ??</h1>
-        <div class="recipe">
-          <h3><a href='https://www.allrecipes.com/recipe/10813/best-chocolate-chip-cookies/'>Classic Chocolate Chip Cookies</a></h3>
-          <p>The ultimate comfort cookie that never fails!</p>
-        </div>
-        <div class="recipe">
-          <h3><a href='https://www.kingarthurbaking.com/recipes/238-original-pancakes'>Fluffy Pancakes</a></h3>
-          <p>Perfect weekend breakfast treat.</p>
-        </div>
-        <p><a href="/leaderboard">Back to Leaderboard</a></p>
+        <h1> ?? Favorite Recipes ??</h1>
+        {items_html}
+        <p><a class='btn' href="/leaderboard">Back to Leaderboard</a></p>
         </div>
         </body></html>
         """
@@ -150,6 +169,65 @@ async def create_app(db_path: str):
         
         return web.json_response(logs)
 
+    # Recipes API
+    async def list_recipes(request):
+        async with aiosqlite.connect(db_path) as db:
+            async with db.execute('SELECT id, title, url, description, visible, ord, created_at FROM recipes ORDER BY ord ASC, id ASC') as cur:
+                rows = await cur.fetchall()
+        data = [
+            {
+                'id': r[0], 'title': r[1], 'url': r[2], 'description': r[3],
+                'visible': bool(r[4]), 'ord': r[5], 'created_at': r[6]
+            } for r in rows
+        ]
+        return web.json_response({'data': data})
+
+    async def create_recipe(request):
+        try:
+            data = await request.json()
+        except Exception:
+            return web.json_response({'error': 'Invalid JSON'}, status=400)
+        title = (data.get('title') or '').strip()
+        if not title:
+            return web.json_response({'error': 'title required'}, status=400)
+        url = (data.get('url') or '').strip()
+        desc = (data.get('description') or '').strip()
+        visible = 1 if str(data.get('visible', '1')).lower() in ('1','true','yes','on') else 0
+        ordv = int(data.get('ord', 0) or 0)
+        async with aiosqlite.connect(db_path) as db:
+            await db.execute('INSERT INTO recipes(title,url,description,visible,ord) VALUES(?,?,?,?,?)', (title, url, desc, visible, ordv))
+            await db.commit()
+        return web.json_response({'success': True})
+
+    async def update_recipe(request):
+        rid = request.match_info.get('rid')
+        try:
+            data = await request.json()
+        except Exception:
+            return web.json_response({'error': 'Invalid JSON'}, status=400)
+        fields = []
+        values = []
+        for key in ('title','url','description','ord','visible'):
+            if key in data:
+                if key == 'visible':
+                    values.append(1 if str(data['visible']).lower() in ('1','true','yes','on') else 0)
+                else:
+                    values.append(data[key])
+                fields.append(f"{key}=?")
+        if not fields:
+            return web.json_response({'error': 'no fields'}, status=400)
+        async with aiosqlite.connect(db_path) as db:
+            await db.execute(f'UPDATE recipes SET {", ".join(fields)} WHERE id=?', (*values, rid))
+            await db.commit()
+        return web.json_response({'success': True})
+
+    async def delete_recipe(request):
+        rid = request.match_info.get('rid')
+        async with aiosqlite.connect(db_path) as db:
+            await db.execute('DELETE FROM recipes WHERE id=?', (rid,))
+            await db.commit()
+        return web.json_response({'success': True})
+
     async def qr(request):
         url = request.query.get('url', 'https://twitch.tv')
         logger.debug('GET /qr url=%s', url)
@@ -165,6 +243,10 @@ async def create_app(db_path: str):
         web.get('/api/users', users_api),
         web.post('/api/users/update', update_user_api),
         web.get('/api/chat_logs', chat_logs_api),
+        web.get('/api/recipes', list_recipes),
+        web.post('/api/recipes', create_recipe),
+        web.put('/api/recipes/{rid}', update_recipe),
+        web.delete('/api/recipes/{rid}', delete_recipe),
     ])
 
     return app
