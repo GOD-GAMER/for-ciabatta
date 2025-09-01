@@ -1,43 +1,43 @@
-# ?? BakeBot - Fun Twitch Chat Bot for Streamers
+# 🥖 BakeBot - Fun Twitch Chat Bot for Streamers
 
 [![GitHub release](https://img.shields.io/github/v/release/GOD-GAMER/for-ciabatta)](https://github.com/GOD-GAMER/for-ciabatta/releases)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-## ?? What is BakeBot?
+## 🌟 What is BakeBot?
 
 BakeBot is a **fun chat bot for Twitch streamers**! It's like having a friendly helper in your chat that:
-- Plays fun baking games with your viewers ??
-- Gives out virtual tokens (like coins) that viewers can collect ??
-- Shows a leaderboard of your most active fans ??
-- Works through an **easy website** - no coding needed! ???
+- Plays fun baking games with your viewers 🎮
+- Gives out virtual tokens (like coins) that viewers can collect 💰
+- Shows a leaderboard of your most active fans 📊
+- Works through an **easy website** - no coding needed! 🖥️
 
 **Perfect for:** Cooking streamers, baking enthusiasts, or anyone who wants their chat to be more fun and interactive!
 
 ---
 
-## ?? What Can BakeBot Do?
+## 🎯 What Can BakeBot Do?
 
-### ?? Fun Games Your Viewers Will Love
+### 🎮 Fun Games Your Viewers Will Love
 - **Guess the Ingredient** - "Is it flour or sugar?"
 - **Oven Trivia** - Baking questions with prizes
 - **Bread Fights** - Viewers battle with baking knowledge
 - **Seasonal Events** - Special holiday-themed games
 
-### ?? Token System (Like a Fun Economy)
+### 💰 Token System (Like a Fun Economy)
 - Viewers earn tokens by chatting and playing games
 - Daily bonuses for regular viewers
 - Virtual shop with fun rewards
 - Viewers can gift tokens to each other
 
-### ?? Community Features  
+### 🏆 Community Features  
 - **Leaderboard** - Show off your most active fans
 - **Recipe Sharing** - Share your favorite recipes with viewers
 - **Custom Titles** - Give special titles to your best supporters
 
 ---
 
-## ?? Super Easy Setup (Anyone Can Do This!)
+## 🚀 Super Easy Setup (Anyone Can Do This!)
 
 ### Step 1: Download Python
 1. Go to [python.org](https://python.org/downloads/)
@@ -60,13 +60,13 @@ BakeBot is a **fun chat bot for Twitch streamers**! It's like having a friendly 
 ### Step 4: Start BakeBot
 1. **Type this:** `python -m bot.gui`
 2. **Press Enter**
-3. A website will open automatically! ??
+3. A website will open automatically! 🎉
 
 ### Step 5: Connect to Twitch (Super Important!)
 1. In the website that opened, click **"OAuth Wizard"**
 2. It will take you to Twitch - **log in with your streaming account**
 3. Click **"Authorize"** to give BakeBot permission
-4. You'll be sent back automatically ?
+4. You'll be sent back automatically ✅
 
 ### Step 6: Tell BakeBot Your Channel
 1. Go to **"Configuration"** tab
@@ -75,13 +75,13 @@ BakeBot is a **fun chat bot for Twitch streamers**! It's like having a friendly 
 
 ### Step 7: Start the Bot!
 1. Click the big **"Start Bot"** button
-2. Wait for it to say "Bot Running" ?
+2. Wait for it to say "Bot Running" ✅
 3. Go to your Twitch chat and type `!help`
-4. If BakeBot responds, **you did it!** ??
+4. If BakeBot responds, **you did it!** 🎉
 
 ---
 
-## ?? How Your Viewers Use BakeBot
+## 🎮 How Your Viewers Use BakeBot
 
 ### Basic Commands (Anyone Can Use)
 - `!help` - Shows all available commands
@@ -103,7 +103,7 @@ BakeBot is a **fun chat bot for Twitch streamers**! It's like having a friendly 
 
 ---
 
-## ?? How to Add Your Recipes (Easy!)
+## 🍪 How to Add Your Recipes (Easy!)
 
 Your viewers will love seeing your favorite recipes! Here's how to add them:
 
@@ -134,7 +134,7 @@ Your viewers will love seeing your favorite recipes! Here's how to add them:
 
 ---
 
-## ?? Share Your Leaderboard with Viewers
+## 🌐 Share Your Leaderboard with Viewers
 
 Your viewers will love seeing who's winning! Here's how to share it:
 
@@ -158,38 +158,38 @@ This is a bit more technical, but lets anyone see your leaderboard:
 
 ---
 
-## ??? Using the Dashboard
+## 🎛️ Using the Dashboard
 
 The BakeBot website has several tabs to help you:
 
-### ?? Control Tab
+### 🎮 Control Tab
 - **Start/Stop the bot** - Big green and red buttons
 - **See if it's working** - Shows "Bot Running" or "Bot Stopped"
 - **Quick links** to guides and help
 
-### ?? Configuration Tab  
+### ⚙️ Configuration Tab  
 - **Change settings** like your Twitch channel name
 - **Get your token** using the OAuth Wizard
 - **Adjust ports** if needed (usually don't need to change)
 
-### ?? Network Tab
+### 🌐 Network Tab
 - **See your IP addresses** for sharing publicly
 - **Copy links** to share with viewers
 - **Port forwarding helpers**
 
-### ?? EventSub Tab (Advanced)
+### 🎯 EventSub Tab (Advanced)
 - **Connect channel points** to bot rewards
 - **Set up follows/subs** to give automatic tokens
 - **Advanced users only** - skip if you're just starting
 
-### ?? Recipes Tab
+### 🍪 Recipes Tab
 - **Add your favorite recipes** for viewers to see
 - **Import many at once** using copy-paste
 - **Manage and edit** existing recipes
 
 ---
 
-## ?? Help! Something's Not Working
+## 🆘 Help! Something's Not Working
 
 ### Bot Won't Start
 - **Check:** Did you enter your Twitch channel name?
@@ -218,20 +218,20 @@ The BakeBot website has several tabs to help you:
 
 ---
 
-## ?? You Did It!
+## 🎉 You Did It!
 
 Congratulations! You now have:
-- ? A fun chat bot running in your stream
-- ? Games for your viewers to play
-- ? A token economy to keep people engaged
-- ? A leaderboard to show your most active fans
-- ? Recipe sharing for your baking content
+- ✅ A fun chat bot running in your stream
+- ✅ Games for your viewers to play
+- ✅ A token economy to keep people engaged
+- ✅ A leaderboard to show your most active fans
+- ✅ Recipe sharing for your baking content
 
 **Your viewers will love the interactive features!** 
 
 ---
 
-## ?? Keep Your Bot Safe
+## 🔒 Keep Your Bot Safe
 
 - **Never share your `.env` file** - it contains your secret tokens
 - **Keep the dashboard private** - only you should access `127.0.0.1:5000`
@@ -240,7 +240,7 @@ Congratulations! You now have:
 
 ---
 
-## ?? Want to Help Make BakeBot Better?
+## 🤝 Want to Help Make BakeBot Better?
 
 We love when people help improve BakeBot! If you know how to code:
 
@@ -257,12 +257,12 @@ We love when people help improve BakeBot! If you know how to code:
 
 ---
 
-## ?? What's New (Latest Updates)
+## 📋 What's New (Latest Updates)
 
 ### Version 0.2.5 (Current)
-- ? Much easier to understand documentation
-- ? Step-by-step setup guide anyone can follow
-- ? Combined all guides into one simple README
+- ✅ Much easier to understand documentation
+- ✅ Step-by-step setup guide anyone can follow
+- ✅ Combined all guides into one simple README
 
 ### Previous Updates
 - Recipe sharing system with easy bulk import
@@ -273,6 +273,6 @@ We love when people help improve BakeBot! If you know how to code:
 
 ---
 
-**Made with ?? love for streamers and their communities!**
+**Made with 🍞 love for streamers and their communities!**
 
 *Perfect for cooking streamers, baking enthusiasts, and anyone who wants their Twitch chat to be more fun and interactive!*
