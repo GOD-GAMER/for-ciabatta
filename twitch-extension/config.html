@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>BakeBot Extension Config</title>
+  <link rel="stylesheet" href="styles.css" />
+  <script src="https://extension-files.twitch.tv/helper/v1/twitch-ext.min.js"></script>
+</head>
+<body>
+  <div id="app" style="padding:12px;">
+    <h2>?? BakeBot – Extension Configuration</h2>
+    <p>Enter your BakeBot PUBLIC_BASE_URL (must be HTTPS):</p>
+    <input id="base-url" placeholder="https://your-domain-or-tunnel" style="width:100%; padding:8px;" />
+    <div style="margin-top:8px; display:flex; gap:8px;">
+      <button id="save" class="tab-btn">Save</button>
+      <button id="load" class="tab-btn">Load Current</button>
+    </div>
+    <div id="status" class="status" style="margin-top:8px;"></div>
+  </div>
+  <script src="config.js"></script>
+</body>
+</html>

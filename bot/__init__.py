@@ -3,4 +3,4 @@ __all__ = [
 ]
 
 # Package version. Managed by scripts/bump_version.py
-__version__ = '0.3.1'
+__version__ = '0.3.2'

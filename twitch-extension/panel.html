@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>BakeBot Panel</title>
+  <link rel="stylesheet" href="styles.css" />
+  <script src="https://extension-files.twitch.tv/helper/v1/twitch-ext.min.js"></script>
+</head>
+<body>
+  <div id="app">
+    <header>
+      <h1>?? BakeBot</h1>
+      <nav>
+        <button class="tab-btn active" data-tab="tab-leaderboard">Leaderboard</button>
+        <button class="tab-btn" data-tab="tab-recipes">Recipes</button>
+      </nav>
+    </header>
+
+    <section id="tab-leaderboard" class="tab active">
+      <div id="lb-status" class="status">Loading leaderboard...</div>
+      <ul id="lb-list" class="list"></ul>
+    </section>
+
+    <section id="tab-recipes" class="tab">
+      <div id="rc-status" class="status">Loading recipes...</div>
+      <ul id="rc-list" class="list"></ul>
+    </section>
+
+    <footer>
+      <small>Powered by BakeBot</small>
+    </footer>
+  </div>
+
+  <script src="panel.js"></script>
+</body>
+</html>
