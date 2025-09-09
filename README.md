@@ -1,278 +1,333 @@
-# 🥖 BakeBot - Fun Twitch Chat Bot for Streamers
+# 🥖 BakeBot – Twitch Chat Bot for Streamers (In‑Depth Guide)
 
 [![GitHub release](https://img.shields.io/github/v/release/GOD-GAMER/for-ciabatta)](https://github.com/GOD-GAMER/for-ciabatta/releases)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-## 🌟 What is BakeBot?
-
-BakeBot is a **fun chat bot for Twitch streamers**! It's like having a friendly helper in your chat that:
-- Plays fun baking games with your viewers 🎮
-- Gives out virtual tokens (like coins) that viewers can collect 💰
-- Shows a leaderboard of your most active fans 📊
-- Works through an **easy website** - no coding needed! 🖥️
-
-**Perfect for:** Cooking streamers, baking enthusiasts, or anyone who wants their chat to be more fun and interactive!
+BakeBot is a fun, baking‑themed Twitch bot with mini‑games, a token economy, a public leaderboard, recipe sharing, and a modern web dashboard. It also ships with a Twitch Extension (Panel) so viewers can see your leaderboard and recipes right inside Twitch.
 
 ---
 
-## 🎯 What Can BakeBot Do?
+## 📚 Table of Contents
+- Overview
+- Features
+- Architecture
+- Requirements
+- Quick Start (5 minutes)
+- Detailed Setup
+- Configuration Reference (.env)
+- Dashboard Guide
+- Feature Toggles (Enable/Disable features)
+- Mini‑Games & Commands
+- Token Economy
+- Recipes Manager
+- EventSub (Channel Points)
+- Networking & Public Sharing
+- Twitch Extension (Panel)
+- Public/Developer API Endpoints
+- Data & Storage (SQLite)
+- Backup & Restore
+- Security Best Practices
+- Troubleshooting & FAQ
+- Contributing & Roadmap
+- License
 
-### 🎮 Fun Games Your Viewers Will Love
-- **Guess the Ingredient** - "Is it flour or sugar?"
-- **Oven Trivia** - Baking questions with prizes
-- **Bread Fights** - Viewers battle with baking knowledge
-- **Seasonal Events** - Special holiday-themed games
-
-### 💰 Token System (Like a Fun Economy)
-- Viewers earn tokens by chatting and playing games
-- Daily bonuses for regular viewers
-- Virtual shop with fun rewards
-- Viewers can gift tokens to each other
-
-### 🏆 Community Features  
-- **Leaderboard** - Show off your most active fans
-- **Recipe Sharing** - Share your favorite recipes with viewers
-- **Custom Titles** - Give special titles to your best supporters
-
----
-
-## 🚀 Super Easy Setup (Anyone Can Do This!)
-
-### Step 1: Download Python
-1. Go to [python.org](https://python.org/downloads/)
-2. Click the big **"Download Python"** button
-3. Run the installer and **check "Add Python to PATH"**
-4. Click **"Install Now"**
-
-### Step 2: Download BakeBot
-1. Click **[here to download BakeBot](https://github.com/GOD-GAMER/for-ciabatta/releases)** (get the latest ZIP file)
-2. **Extract** the ZIP file to a folder (like your Desktop)
-3. Remember where you put it!
-
-### Step 3: Install BakeBot
-1. **Open Command Prompt** (search "cmd" in Windows)
-2. **Type this:** `cd Desktop\for-ciabatta` (or wherever you put the folder)
-3. **Press Enter**
-4. **Type this:** `pip install -r requirements.txt`
-5. **Press Enter** and wait for it to finish
-
-### Step 4: Start BakeBot
-1. **Type this:** `python -m bot.gui`
-2. **Press Enter**
-3. A website will open automatically! 🎉
-
-### Step 5: Connect to Twitch (Super Important!)
-1. In the website that opened, click **"OAuth Wizard"**
-2. It will take you to Twitch - **log in with your streaming account**
-3. Click **"Authorize"** to give BakeBot permission
-4. You'll be sent back automatically ✅
-
-### Step 6: Tell BakeBot Your Channel
-1. Go to **"Configuration"** tab
-2. In **"Twitch Channel"** box, type your Twitch username (lowercase)
-3. Click **"Save Configuration"**
-
-### Step 7: Start the Bot!
-1. Click the big **"Start Bot"** button
-2. Wait for it to say "Bot Running" ✅
-3. Go to your Twitch chat and type `!help`
-4. If BakeBot responds, **you did it!** 🎉
+See also the Wiki for a step‑by‑step, friendly guide: docs/wiki/Home.md
 
 ---
 
-## 🎮 How Your Viewers Use BakeBot
+## 🌟 Overview
+BakeBot makes your chat more interactive with simple games and rewards. It is designed for streamers who want zero‑setup persistence (SQLite), a one‑click dashboard, and public links to share with viewers.
 
-### Basic Commands (Anyone Can Use)
-- `!help` - Shows all available commands
-- `!tokens` - Check how many tokens they have
-- `!daily` - Get free daily tokens (10-30 tokens!)
-- `!shop` - See what they can buy with tokens
-- `!level` - See their stats and level
-
-### Fun Game Commands
-- `!guess` - Start the ingredient guessing game
-- `!oventrivia` - Answer baking trivia questions
-- `!fight @username` - Challenge someone to a bread fight!
-- `!accept` - Accept a bread fight challenge
-
-### Special Commands (Only You Can Use)
-- `!give @viewer 50` - Give tokens to a viewer
-- `!ban @user` - Ban someone from using the bot
-- `!title @user Baker` - Give someone a cool title
+Key goals:
+- Easy to install and run locally
+- No cloud databases or servers required
+- Safe to share public links (leaderboard/recipes)
+- Extensible and transparent (MIT‑licensed)
 
 ---
 
-## 🍪 How to Add Your Recipes (Easy!)
-
-Your viewers will love seeing your favorite recipes! Here's how to add them:
-
-### Method 1: Add One Recipe at a Time
-1. Open the BakeBot website (it should still be open at `http://127.0.0.1:5000`)
-2. Click the **"Recipes"** tab at the top
-3. Fill in your recipe:
-   - **Title:** "My Amazing Chocolate Cookies"
-   - **URL:** Link to the full recipe (optional)
-   - **Description:** "The best cookies ever!"
-4. Click **"Add"**
-5. Done! Your viewers can now see it at `http://localhost:8080/recipes`
-
-### Method 2: Add Many Recipes at Once
-1. In the **"Bulk Import"** box, paste recipes like this:
-   ```
-   Chocolate Cookies|https://example.com/cookies|Super yummy cookies
-   Banana Bread|https://example.com/bread|Moist and delicious
-   Apple Pie|https://example.com/pie|Classic American dessert
-   ```
-2. Click **"Import"**
-3. All your recipes are added instantly!
-
-### Method 3: Try the Examples First
-1. Click **"Fill Demo"** to see example recipes
-2. Click **"Import"** to add them
-3. Now you can edit them to be your own recipes
+## ✨ Features
+- Mini‑games: Guess the Ingredient, Oven Trivia, Seasonal Events, Bread Fights
+- Token economy with shop, gifts, daily/hourly/work rewards
+- Public pages: Leaderboard and Recipes
+- Modern dashboard to start/stop the bot, configure, manage data
+- Feature Toggles to enable/disable commands/games in one click
+- EventSub integration for channel points (follows/subs/cheers/raids)
+- Twitch Extension (Panel) that shows leaderboard and recipes on Twitch
 
 ---
 
-## 🌐 Share Your Leaderboard with Viewers
+## 🏗️ Architecture
+- Twitch bot: Python + TwitchIO (async)
+- Web dashboard: Flask + Socket.IO (bot.gui)
+- Public web/API: AIOHTTP (bot.web)
+- Data: SQLite (aiosqlite) – single file database
+- Templates: Vanilla HTML/CSS/JS
 
-Your viewers will love seeing who's winning! Here's how to share it:
-
-### Easy Way (Works Right Away)
-- Tell your viewers to visit: `http://localhost:8080/leaderboard`
-- This only works if they're on the same WiFi as you
-
-### Advanced Way (Share with the Internet)
-This is a bit more technical, but lets anyone see your leaderboard:
-
-1. **Set up Port Forwarding** (ask a tech-savvy friend to help):
-   - Open your router settings
-   - Forward port 8080 to your computer
-   - Get your public IP address
-2. **Or use a Tunnel Service** (easier):
-   - Download [ngrok](https://ngrok.com/)
-   - Run: `ngrok http 8080`
-   - Share the link it gives you!
-
-**Need Help?** Check our [Port Forwarding Guide](docs/PORT_FORWARDING.md) for detailed steps.
+High‑level modules:
+- bot/bot.py – main bot lifecycle
+- bot/commands.py – chat commands, games, economy
+- bot/games.py – game mechanics (bread fights, trivia)
+- bot/gui.py – dashboard server (port 5000 by default)
+- bot/web.py – public web/API (port 8080 by default)
+- bot/storage.py – SQLite schema + data access
+- bot/eventsub.py – EventSub handler and mapping
 
 ---
 
-## 🎛️ Using the Dashboard
+## 🧰 Requirements
+- Windows 10/11, macOS, or Linux
+- Python 3.10+
+- Twitch account for the bot
 
-The BakeBot website has several tabs to help you:
-
-### 🎮 Control Tab
-- **Start/Stop the bot** - Big green and red buttons
-- **See if it's working** - Shows "Bot Running" or "Bot Stopped"
-- **Quick links** to guides and help
-
-### ⚙️ Configuration Tab  
-- **Change settings** like your Twitch channel name
-- **Get your token** using the OAuth Wizard
-- **Adjust ports** if needed (usually don't need to change)
-
-### 🌐 Network Tab
-- **See your IP addresses** for sharing publicly
-- **Copy links** to share with viewers
-- **Port forwarding helpers**
-
-### 🎯 EventSub Tab (Advanced)
-- **Connect channel points** to bot rewards
-- **Set up follows/subs** to give automatic tokens
-- **Advanced users only** - skip if you're just starting
-
-### 🍪 Recipes Tab
-- **Add your favorite recipes** for viewers to see
-- **Import many at once** using copy-paste
-- **Manage and edit** existing recipes
+Optional
+- A Twitch Developer Application (for OAuth Wizard)
+- Tunnel tool (ngrok/cloudflared) if you want to share publicly
 
 ---
 
-## 🆘 Help! Something's Not Working
-
-### Bot Won't Start
-- **Check:** Did you enter your Twitch channel name?
-- **Check:** Did you complete the OAuth Wizard?
-- **Try:** Click "Stop Bot" then "Start Bot" again
-
-### Commands Don't Work in Chat
-- **Check:** Is the bot actually running? (should say "Bot Running")
-- **Check:** Are you typing in the right Twitch channel?
-- **Try:** Type `!help` to test
-
-### Website Won't Open
-- **Try:** Go to `http://127.0.0.1:5000` manually
-- **Check:** Did you run `python -m bot.gui`?
-- **Try:** Close everything and start over from Step 4
-
-### Viewers Can't See Leaderboard
-- **Check:** Are they using `http://localhost:8080/leaderboard`?
-- **Remember:** This only works for people on your same WiFi
-- **Advanced:** Set up port forwarding for internet access
-
-### Need More Help?
-- **Check our guides:** Look in the `docs/` folder for detailed help
-- **Common issues:** See [TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md)
-- **Ask for help:** Create an issue on GitHub
+## 🚀 Quick Start (5 minutes)
+1) Install Python 3.10+: https://python.org/downloads
+2) Download latest ZIP: https://github.com/GOD-GAMER/for-ciabatta/releases
+3) Extract to a folder (e.g., Desktop/for-ciabatta)
+4) Open a terminal in the folder, then:
+```
+pip install -r requirements.txt
+python -m bot.gui
+```
+5) In the dashboard (opens automatically):
+- Click OAuth Wizard → Authorize
+- Set Twitch Channel → Save Configuration
+- Click Start Bot → Type !help in chat
 
 ---
 
-## 🎉 You Did It!
+## 🔍 Detailed Setup
+- Windows: open PowerShell in the project folder
+- macOS/Linux: open Terminal
 
-Congratulations! You now have:
-- ✅ A fun chat bot running in your stream
-- ✅ Games for your viewers to play
-- ✅ A token economy to keep people engaged
-- ✅ A leaderboard to show your most active fans
-- ✅ Recipe sharing for your baking content
-
-**Your viewers will love the interactive features!** 
-
----
-
-## 🔒 Keep Your Bot Safe
-
-- **Never share your `.env` file** - it contains your secret tokens
-- **Keep the dashboard private** - only you should access `127.0.0.1:5000`
-- **Only share the leaderboard** - `localhost:8080/leaderboard` is safe to share
-- **Don't share your Twitch token** with anyone
-
----
-
-## 🤝 Want to Help Make BakeBot Better?
-
-We love when people help improve BakeBot! If you know how to code:
-
-1. **Fork** this repository on GitHub
-2. **Make your changes** or add new features  
-3. **Test everything** works properly
-4. **Submit a pull request** to share your improvements
-
-**Ideas for improvements:**
-- New mini-games
-- More shop items
-- Better graphics for the website
-- New features for streamers
+Create a virtual environment (optional):
+```
+python -m venv .venv
+# Windows
+.venv\Scripts\activate
+# macOS/Linux
+source .venv/bin/activate
+```
+Install dependencies and launch dashboard:
+```
+pip install -r requirements.txt
+python -m bot.gui
+```
+Dashboard: http://127.0.0.1:5000  
+Public web (when bot is running): http://localhost:8080
 
 ---
 
-## 📋 What's New (Latest Updates)
+## ⚙️ Configuration Reference (.env)
+These are edited via the dashboard, but you can also set them in a .env file.
 
-### Version 0.2.5 (Current)
-- ✅ Much easier to understand documentation
-- ✅ Step-by-step setup guide anyone can follow
-- ✅ Combined all guides into one simple README
+- TWITCH_TOKEN – oauth:xxxxx (from OAuth Wizard)
+- TWITCH_CLIENT_ID – your Twitch app client ID (optional for wizard)
+- TWITCH_CHANNEL – your channel (lowercase)
+- PREFIX – command prefix, default !
+- WEB_HOST – 0.0.0.0 for LAN/public, 127.0.0.1 for local only
+- WEB_PORT – default 8080 (public web)
+- GUI_HOST – default 127.0.0.1 (dashboard)
+- GUI_PORT – default 5000 (dashboard)
+- PUBLIC_BASE_URL – https://your‑public‑host (for links and extension)
+- ENABLE_EVENTSUB – true/false
+- EVENTSUB_PORT – default 8081
+- EVENTSUB_SECRET – random secret for Twitch signature checks
 
-### Previous Updates
-- Recipe sharing system with easy bulk import
-- EventSub integration for channel points
-- Professional web dashboard
-- Automatic OAuth token setup
-- Network tools for public sharing
+Advanced
+- LOG_LEVEL – DEBUG/INFO/WARNING/ERROR
 
 ---
 
-**Made with 🍞 love for streamers and their communities!**
+## 🖥️ Dashboard Guide
+Tabs:
+- Control – Start/Stop bot, status, quick links
+- Configuration – Twitch + web settings
+- Toggles – Enable/disable commands, games, economy
+- Network – Local/Public IP helpers, link builders
+- EventSub – Enable, secret/port, mapping JSON
+- Recipes – Add single or bulk, edit, reorder, visibility
 
-*Perfect for cooking streamers, baking enthusiasts, and anyone who wants their Twitch chat to be more fun and interactive!*
+See docs/wiki/Dashboard.md for screenshots and details.
+
+---
+
+## 🎚️ Feature Toggles
+You can instantly enable/disable:
+- All commands/games/economy via group toggles
+- Individual commands (e.g., commands.guess)
+- Game systems (games.bread_fights)
+- Economy features (economy.gifting)
+
+Implementation notes:
+- Flags persisted in metadata key feature_flags (JSON)
+- Bot checks flags before executing commands/games (no restart required)
+
+See docs/wiki/Toggles.md for examples.
+
+---
+
+## 🎮 Mini‑Games & Commands
+Viewer commands:
+- !help, !tokens, !daily, !hourly, !work
+- !shop, !buy <item>, !gift @user <amount>
+- !level, !leaderboard, !recipes
+- !guess, !oventrivia, !seasonal, !fight @user, !accept
+
+Admin/broadcaster:
+- !give @user <amount>, !ban @user, !unban @user
+- !title @user <text>, !untitle @user
+
+Full command list: docs/COMMANDS.md and docs/wiki/Commands.md
+
+---
+
+## 💰 Token Economy
+Earn: !daily, !hourly, !work, win games  
+Spend: !shop, !buy, gift tokens to others  
+Shop items include boosts (Double XP), titles, random rewards, and fight buffs.
+
+See docs/wiki/Economy.md
+
+---
+
+## 🍪 Recipes Manager
+- Add single recipes or import in bulk (JSON or Title|URL|Description lines)
+- Toggle visibility, change order, edit inline
+- Public page: http://localhost:8080/recipes
+
+Step‑by‑step guide: docs/wiki/Recipes.md
+
+---
+
+## 🧩 EventSub (Channel Points)
+- Enable in dashboard, set secret and port
+- Expose HTTPS endpoint via tunnel or reverse proxy
+- Create subscriptions (e.g., channel_points redemptions)
+- Map events to XP/tokens with cooldowns via JSON
+
+Guide: docs/wiki/EventSub.md
+
+---
+
+## 🌐 Networking & Public Sharing
+Options:
+- Port forwarding on your router (TCP 8080)
+- Tunnels (ngrok/cloudflared) – recommended for simplicity
+
+After you have a public URL, set PUBLIC_BASE_URL in the dashboard so the bot and extension share correct links.  
+Guides: docs/wiki/Networking.md and docs/PORT_FORWARDING.md
+
+---
+
+## 🎛️ Twitch Extension (Panel)
+A standalone Panel extension is included (twitch-extension/):
+- Panel files: panel.html, panel.js, styles.css
+- Broadcaster config: config.html, config.js
+
+Data sources (served by the bot):
+- GET {PUBLIC_BASE_URL}/ext/leaderboard → { data: [{ username, xp, wins }] }
+- GET {PUBLIC_BASE_URL}/ext/recipes → { data: [{ title, url, description }] }
+
+How to publish:
+1) Create an Extension in Twitch console (Panel)  
+2) Upload panel.html, panel.js, styles.css, config.html, config.js  
+3) Set the config page and panel view  
+4) In the config page, enter PUBLIC_BASE_URL (HTTPS)  
+5) Start BakeBot (public endpoints must be reachable)
+
+See twitch-extension/README.md
+
+---
+
+## 📡 Public & Developer API Endpoints
+HTML pages
+- GET /leaderboard – public leaderboard page
+- GET /recipes – public recipes page
+
+JSON (public)
+- GET /ext/leaderboard → { data: [{ username, xp, wins }] }
+- GET /ext/recipes → { data: [{ title, url, description }] }
+
+JSON (admin/dashboard use)
+- GET /api/users → list all users
+- POST /api/users/update → { username, xp?, tokens?, wins?, notes?, is_banned? }
+- GET /api/chat_logs?username=&limit=100
+- GET /api/recipes → { data: [...] }
+- POST /api/recipes → create one
+- PUT /api/recipes/{id} → update
+- DELETE /api/recipes/{id} → delete
+- POST /api/recipes/bulk → bulk insert array
+- GET /qr?url=... → PNG QR code of a URL
+
+---
+
+## 🗄️ Data & Storage (SQLite)
+Schema summary (bot/storage.py):
+- users (username, xp, tokens, wins, last_seen, notes, is_banned)
+- redemptions (username, reward, cost, created_at)
+- metadata (key, value)
+- chat_logs (username, message, timestamp, channel)
+- recipes (title, url, description, visible, ord, created_at)
+
+The database file is bot_data.sqlite3 (auto‑created).
+
+---
+
+## 💾 Backup & Restore
+- Backup: copy bot_data.sqlite3 while the bot is stopped
+- Restore: replace the file and restart the bot
+- Optional: export selected tables to CSV using sqlite3 CLI
+
+---
+
+## 🔐 Security Best Practices
+- Never commit or share your .env or Twitch token
+- Keep the dashboard private (127.0.0.1)
+- Use HTTPS for public endpoints and EventSub
+- Rotate EVENTSUB_SECRET periodically
+- Moderate which features are enabled via Toggles
+
+More: docs/wiki/Security.md
+
+---
+
+## 🆘 Troubleshooting & FAQ
+Common issues:
+- Bot won’t start → set Twitch Channel and complete OAuth Wizard
+- Commands don’t respond → ensure status says Running, then !help
+- Leaderboard blank → bot must be running; check WEB_PORT and firewall
+- EventSub failing → must be HTTPS; secret must match
+
+See docs/wiki/Troubleshooting.md and docs/wiki/FAQ.md
+
+---
+
+## 🤝 Contributing & Roadmap
+Contributions welcome!  
+Ideas:
+- More mini‑games and shop items
+- Panel: more views (top tokens, recent winners)
+- Admin tools: in‑GUI user editor
+- EBS for secure signed requests (optional)
+
+How to contribute:
+1) Fork repo → create a feature branch
+2) Make changes with tests if applicable
+3) Submit a pull request
+
+---
+
+## 📄 License
+MIT – see LICENSE
+
+---
+
+Made with 🍞 for the Twitch streaming community.
