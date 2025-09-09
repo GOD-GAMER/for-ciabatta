@@ -28,6 +28,22 @@ async def create_app(db_path: str):
     app = web.Application()
     await ensure_schema(db_path)
 
+    # Simple CORS middleware to allow Extension assets to fetch public JSON
+    @web.middleware
+    async def cors_middleware(request, handler):
+        try:
+            resp = await handler(request)
+        except web.HTTPException as ex:
+            resp = ex
+        # Allow all origins for public endpoints (safe JSON only)
+        if isinstance(resp, web.StreamResponse):
+            resp.headers.setdefault('Access-Control-Allow-Origin', '*')
+            resp.headers.setdefault('Access-Control-Allow-Methods', 'GET, OPTIONS')
+            resp.headers.setdefault('Access-Control-Allow-Headers', 'Content-Type, Authorization')
+        return resp
+
+    app.middlewares.append(cors_middleware)
+
     async def leaderboard(request):
         logger.debug('GET /leaderboard')
         async with aiosqlite.connect(db_path) as db:
@@ -264,6 +280,25 @@ async def create_app(db_path: str):
         img.save(bio, format='PNG')
         return web.Response(body=bio.getvalue(), content_type='image/png')
 
+    # Extension JSON endpoints
+    async def ext_leaderboard(request):
+        async with aiosqlite.connect(db_path) as db:
+            async with db.execute('SELECT username, xp, wins FROM users ORDER BY xp DESC LIMIT 20') as cur:
+                rows = await cur.fetchall()
+        data = [
+            { 'username': u, 'xp': xp, 'wins': w } for (u, xp, w) in rows
+        ]
+        return web.json_response({'data': data})
+
+    async def ext_recipes(request):
+        async with aiosqlite.connect(db_path) as db:
+            async with db.execute('SELECT title, url, description FROM recipes WHERE visible=1 ORDER BY ord ASC, id ASC') as cur:
+                rows = await cur.fetchall()
+        data = [
+            { 'title': t, 'url': u, 'description': d } for (t, u, d) in rows
+        ]
+        return web.json_response({'data': data})
+
     app.add_routes([
         web.get('/leaderboard', leaderboard),
         web.get('/recipes', recipe),
@@ -276,6 +311,9 @@ async def create_app(db_path: str):
         web.put('/api/recipes/{rid}', update_recipe),
         web.delete('/api/recipes/{rid}', delete_recipe),
         web.post('/api/recipes/bulk', bulk_recipes),
+        # Extension endpoints
+        web.get('/ext/leaderboard', ext_leaderboard),
+        web.get('/ext/recipes', ext_recipes),
     ])
 
     return app
